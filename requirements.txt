@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+langchain
+langchain-community
+chromadb
+openai
+tiktoken
