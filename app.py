@@ -8,7 +8,6 @@ from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOpenAI
-
 from templates import veritas_prompt
 
 # 1) Read API key
@@ -61,17 +60,14 @@ class QAResponse(BaseModel):
 # 8) /qa endpoint
 @app.post("/qa", response_model=QAResponse)
 def qa(request: QARequest):
-    # Invoke the QA chain
     res = db_qa.invoke({"query": request.question})
     raw = res["result"].strip()
 
-    # Separate answer from sources block
     if "=== Sources ===" in raw:
         answer_text, sources_block = raw.split("=== Sources ===", 1)
     else:
         answer_text, sources_block = raw, ""
 
-    # Extract bullet lines as source list
     sources = [
         line[2:].strip()
         for line in sources_block.splitlines()
@@ -83,12 +79,13 @@ def qa(request: QARequest):
         sources=sources
     )
 
-# 9) Serve your production UI build
-app.mount(
-    "/",
-    StaticFiles(directory="graceguide-ui/dist", html=True),
-    name="static",
-)
+# 9) (optional) serve your UI if it exists
+ui_path = "graceguide-ui/dist"
+if os.path.isdir(ui_path):
+    app.mount("/", StaticFiles(directory=ui_path, html=True), name="static")
+else:
+    # avoids startup crash when dist folder is missing
+    print(f"Static UI not found at {ui_path}, skipping mount")
 
 # To run locally:
 # uvicorn app:app --reload --port 8000
