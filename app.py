@@ -1,11 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import os
+
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOpenAI
+
 from templates import veritas_prompt
 
 # 1) Read API key
@@ -55,20 +58,20 @@ class QAResponse(BaseModel):
     answer: str
     sources: list[str]
 
-# 8) Updated /qa endpoint
+# 8) /qa endpoint
 @app.post("/qa", response_model=QAResponse)
 def qa(request: QARequest):
     # Invoke the QA chain
     res = db_qa.invoke({"query": request.question})
     raw = res["result"].strip()
 
-    # Split off any "=== Sources ===" block
+    # Separate answer from sources block
     if "=== Sources ===" in raw:
         answer_text, sources_block = raw.split("=== Sources ===", 1)
     else:
         answer_text, sources_block = raw, ""
 
-    # Extract just the bullet lines from the sources block
+    # Extract bullet lines as source list
     sources = [
         line[2:].strip()
         for line in sources_block.splitlines()
@@ -80,9 +83,12 @@ def qa(request: QARequest):
         sources=sources
     )
 
-# 9) (Optional) serve your UI
-# from fastapi.staticfiles import StaticFiles
-# app.mount("/", StaticFiles(directory="graceguide-ui", html=True), name="static")
+# 9) Serve your production UI build
+app.mount(
+    "/",
+    StaticFiles(directory="graceguide-ui/dist", html=True),
+    name="static",
+)
 
 # To run locally:
 # uvicorn app:app --reload --port 8000
