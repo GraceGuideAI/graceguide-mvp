@@ -5,25 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GraceGuide QA</title>
 
-    <!-- ◆  Google AdSense loader – KEEP here -->
+    <!-- Google AdSense (keep!) -->
     <script async
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5110239623159372"
             crossorigin="anonymous"></script>
+
+    <!-- Tailwind CDN (fine for MVP) -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" />
+
+    <!-- Quick brand colour – Marian blue -->
+    <style>
+      :root { --gg-blue: #0054a6; }
+      .btn-brand   { @apply bg-[color:var(--gg-blue)] text-white hover:opacity-90; }
+      .text-brand  { color: var(--gg-blue); }
+      body { @apply bg-gray-50; }
+    </style>
   </head>
 
-  <body>
-    <main class="container">
-      <h1>GraceGuide QA</h1>
+  <body class="min-h-screen flex flex-col items-center p-4">
+    <header class="mb-6">
+      <h1 class="text-3xl font-semibold text-brand text-center">GraceGuide QA</h1>
+    </header>
 
-      <textarea id="question" rows="4"
-                placeholder="Type your question here…"></textarea>
-      <button id="ask">Ask</button>
+    <section class="w-full max-w-xl flex flex-col gap-3">
+      <textarea id="question"
+        class="w-full p-3 rounded border focus:outline-none focus:ring-2 focus:ring-[color:var(--gg-blue)]"
+        rows="4"
+        placeholder="Ask the Bible & Catechism anything…"></textarea>
 
-      <h2>Answer</h2>
-      <pre id="output"></pre>
-    </main>
+      <button id="ask"
+        class="btn-brand px-4 py-2 rounded font-medium transition disabled:opacity-50">
+        Ask
+      </button>
 
-    <!--  Vite rewrites this to /assets/index‑XXXX.js in dist -->
+      <!-- Spinner -->
+      <div id="spinner" class="flex justify-center py-4 hidden">
+        <svg class="animate-spin h-8 w-8 text-brand" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+        </svg>
+      </div>
+
+      <!-- Answer card -->
+      <article id="answerCard"
+        class="hidden bg-white p-4 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">Answer</h2>
+        <pre id="output" class="whitespace-pre-wrap"></pre>
+      </article>
+    </section>
+
+    <!-- Vite entry – will be rewritten on build -->
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
