@@ -2,62 +2,97 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GraceGuide QA</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>GraceGuideAI — Catholic Q & A</title>
 
-    <!-- Google AdSense (keep!) -->
+    <!-- Google AdSense (must stay!) -->
     <script async
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5110239623159372"
             crossorigin="anonymous"></script>
 
-    <!-- Tailwind CDN (fine for MVP) -->
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" />
+    <!-- ❶ Tailwind CDN (quickest route for MVP) -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Quick brand colour – Marian blue -->
-    <style>
-      :root { --gg-blue: #0054a6; }
-      .btn-brand   { @apply bg-[color:var(--gg-blue)] text-white hover:opacity-90; }
-      .text-brand  { color: var(--gg-blue); }
-      body { @apply bg-gray-50; }
-    </style>
-    <script type="module" crossorigin src="/assets/index-Cp_utK9h.js"></script>
+    <!-- ❷ Dark‑mode + brand colour (Marian blue) -->
+    <script>
+      tailwind.config = {
+        darkMode: "media",
+        theme: {
+          extend: { colors: { brand: "#0054a6" } }
+        }
+      }
+    </script>
+
+    <!-- ❸ Simple font stack -->
+    <style>*{font-family:system-ui,"Inter",sans-serif}</style>
+    <script type="module" crossorigin src="/assets/index-DJuac7u9.js"></script>
   </head>
 
-  <body class="min-h-screen flex flex-col items-center p-4">
-    <header class="mb-6">
-      <h1 class="text-3xl font-semibold text-brand text-center">GraceGuide QA</h1>
+  <body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- ░░░ Header ░░░ -->
+    <header class="bg-brand text-white px-4 py-6">
+      <h1 class="text-2xl sm:text-3xl font-semibold text-center sm:text-left">
+        GraceGuideAI&nbsp;<span class="font-light">Beta</span>
+      </h1>
+      <p class="mt-2 text-center sm:text-left opacity-90">
+        Catholic answers powered by Scripture&nbsp;&amp;&nbsp;Catechism
+      </p>
     </header>
 
-    <section class="w-full max-w-xl flex flex-col gap-3">
-      <textarea id="question"
-        class="w-full p-3 rounded border focus:outline-none focus:ring-2 focus:ring-[color:var(--gg-blue)]"
+    <!-- ░░░ Main Q&A ░░░ -->
+    <main
+      class="w-full max-w-xl mx-auto flex-1 px-4 py-8 flex flex-col space-y-6"
+    >
+      <!-- Question -->
+      <label class="text-sm font-medium text-gray-700">Ask your question</label>
+      <textarea
+        id="question"
         rows="4"
-        placeholder="Ask the Bible & Catechism anything…"></textarea>
+        class="mt-1 p-3 w-full rounded-md border border-gray-300 focus:border-brand focus:ring-brand/20 resize-y"
+        placeholder="e.g. What does the Catechism say about forgiveness?"
+      ></textarea>
 
-      <button id="ask"
-        class="btn-brand px-4 py-2 rounded font-medium transition disabled:opacity-50">
-        Ask
+      <!-- Ask button with inline spinner -->
+      <button
+        id="ask"
+        class="self-end bg-brand hover:bg-brand/90 text-white px-6 py-2 rounded-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <span id="askLabel">Ask</span>
+        <svg
+          id="spinner"
+          class="hidden animate-spin h-4 w-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none" viewBox="0 0 24 24"
+        >
+          <circle class="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" stroke-width="4" />
+          <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+        </svg>
       </button>
 
-      <!-- Spinner -->
-      <div id="spinner" class="flex justify-center py-4 hidden">
-        <svg class="animate-spin h-8 w-8 text-brand" viewBox="0 0 24 24" fill="none">
-          <circle class="opacity-25" cx="12" cy="12" r="10"
-                  stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-        </svg>
-      </div>
+      <!-- Answer area -->
+      <section id="answerCard" class="hidden space-y-4">
+        <h2 class="text-lg font-semibold">Answer</h2>
+        <pre
+          id="output"
+          class="whitespace-pre-wrap bg-white p-4 rounded-md border border-gray-200 text-gray-800"
+        ></pre>
+        <h3 class="text-md font-semibold">Sources</h3>
+        <ul
+          id="sourceList"
+          class="list-disc pl-6 space-y-1 text-gray-700"
+        ></ul>
+      </section>
+    </main>
 
-      <!-- Answer card -->
-      <article id="answerCard"
-        class="hidden bg-white p-4 rounded-lg shadow">
-        <h2 class="text-xl font-semibold mb-2">Answer</h2>
-        <pre id="output" class="whitespace-pre-wrap"></pre>
-      </article>
-    </section>
+    <footer class="text-center text-xs text-gray-500 py-4">
+      © 2025 GraceGuideAI · Beta preview
+    </footer>
 
-    <!-- Vite entry – will be rewritten on build -->
+    <!-- Vite entry -->
   </body>
 </html>

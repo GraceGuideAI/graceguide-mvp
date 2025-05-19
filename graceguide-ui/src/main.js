@@ -1,29 +1,51 @@
-const askBtn    = document.getElementById('ask');
-const questionEl = document.getElementById('question');
-const outputEl   = document.getElementById('output');
+const askBtn   = document.getElementById("ask");
+const askLabel = document.getElementById("askLabel");
+const spinner  = document.getElementById("spinner");
+const qBox     = document.getElementById("question");
+const card     = document.getElementById("answerCard");
+const output   = document.getElementById("output");
+const srcList  = document.getElementById("sourceList");
 
-askBtn.addEventListener('click', async () => {
-  const question = questionEl.value.trim();
-  if (!question) return;
+async function ask() {
+  const q = qBox.value.trim();
+  if (!q) return;
 
-  outputEl.textContent = 'Loading…';
+  // UI → loading state
+  askBtn.disabled = true;
+  askLabel.classList.add("hidden");
+  spinner.classList.remove("hidden");
+  card.classList.add("hidden");
 
   try {
-    const res = await fetch('/qa', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ question }),
+    const res = await fetch("/qa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: q })
     });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
+    if (!res.ok) throw new Error(await res.text());
     const { answer, sources } = await res.json();
 
-    outputEl.textContent =
-      answer +
-      '\n\nSources:\n' +
-      sources.map(s => '- ' + s).join('\n');
+    // Render answer
+    output.textContent = answer.trim();
+    // Render sources
+    srcList.innerHTML = "";
+    sources.forEach(txt => {
+      const li = document.createElement("li");
+      li.textContent = txt;
+      srcList.appendChild(li);
+    });
+
+    card.classList.remove("hidden");
   } catch (err) {
-    outputEl.textContent = 'Error: ' + err.message;
+    alert("Error: " + err.message);
+  } finally {
+    spinner.classList.add("hidden");
+    askLabel.classList.remove("hidden");
+    askBtn.disabled = false;
   }
+}
+
+askBtn.addEventListener("click", ask);
+qBox.addEventListener("keydown", e => {
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) ask();
 });
