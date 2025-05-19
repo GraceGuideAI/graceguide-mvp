@@ -2,19 +2,109 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>GraceGuide QA</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5110239623159372"
-     crossorigin="anonymous"></script>  
-  </head>
-  <body>
-    <h1>GraceGuide QA</h1>
-    <textarea id="question" rows="4" cols="50" placeholder="Type your question here…"></textarea><br/>
-    <button id="ask">Ask</button>
-    <h2>Answer</h2>
-    <pre id="output"></pre>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>GraceGuide — Catholic Q & A</title>
 
-    <!-- this loads your JavaScript -->
+    <!-- ❶ Tailwind CSS (CDN build — quickest for MVP) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ❷ Google AdSense (must remain for monetisation) -->
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5110239623159372"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- ❸ A tiny dark / light theme tweak -->
+    <script>
+      tailwind.config = {
+        darkMode: "media",
+        theme: { extend: { colors: { brand: "#0054a6" } } },
+      };
+    </script>
+
+    <!-- ❹ App CSS (optional) -->
+    <style>
+      * {
+        font-family: system-ui, "Inter", sans-serif;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Header / Hero -->
+    <header class="bg-brand text-white px-4 py-6">
+      <h1 class="text-2xl font-semibold text-center sm:text-left">
+        GraceGuide&nbsp;<span class="font-light">Beta</span>
+      </h1>
+      <p class="mt-2 text-center sm:text-left opacity-90">
+        Catholic answers powered by Scripture &amp; Catechism
+      </p>
+    </header>
+
+    <!-- Main Q&A area -->
+    <main
+      class="flex-1 w-full max-w-xl mx-auto px-4 py-8 space-y-6 flex flex-col"
+    >
+      <!-- Question box -->
+      <label class="block text-sm font-medium text-gray-700"
+        >Ask your question</label
+      >
+      <textarea
+        id="question"
+        rows="4"
+        class="mt-1 p-3 w-full rounded-md border border-gray-300 focus:border-brand focus:ring-brand/20 resize-y"
+        placeholder="e.g. What does the Catechism say about forgiveness?"
+      ></textarea>
+
+      <button
+        id="ask"
+        class="self-end bg-brand hover:bg-brand/90 text-white px-6 py-2 rounded-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <span id="askLabel">Ask</span>
+        <svg
+          id="spinner"
+          class="hidden animate-spin h-4 w-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          ></path>
+        </svg>
+      </button>
+
+      <!-- Answer -->
+      <section id="answerCard" class="hidden space-y-4">
+        <h2 class="text-lg font-semibold">Answer</h2>
+        <pre
+          id="output"
+          class="whitespace-pre-wrap bg-white p-4 rounded-md border border-gray-200 text-gray-800"
+        ></pre>
+        <h3 class="text-md font-semibold">Sources</h3>
+        <ul id="sourceList" class="list-disc pl-6 space-y-1 text-gray-700"></ul>
+      </section>
+    </main>
+
+    <footer class="text-center text-xs text-gray-500 py-4">
+      © 2025 GraceGuide · Beta preview
+    </footer>
+
+    <!-- Your JS -->
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
