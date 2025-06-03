@@ -69,3 +69,7 @@ npm run build
 ```
 
 The output appears in `graceguide-ui/dist/`. When the API is running these files are served as the root website so you can navigate to `http://localhost:8000/` to use the app.
+
+## Feedback log
+
+If you keep notes while using the app, you can write them to `feedback.log`. The file is ignored by Git so your personal feedback stays local.
