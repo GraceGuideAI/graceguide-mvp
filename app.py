@@ -64,6 +64,9 @@ class QAResponse(BaseModel):
     answer: str
     sources: list[str]
 
+class SubscribeRequest(BaseModel):
+    email: str
+
 # 8) /qa endpoint
 @app.post("/qa", response_model=QAResponse)
 def qa(request: QARequest):
@@ -104,7 +107,20 @@ def qa(request: QARequest):
         sources=sources
     )
 
-# 9) (optional) serve your UI if it exists
+# 9) /subscribe endpoint to capture emails
+@app.post("/subscribe")
+def subscribe(req: SubscribeRequest):
+    import csv
+    fname = "subscribers.csv"
+    new_file = not os.path.isfile(fname)
+    with open(fname, "a", newline="") as f:
+        writer = csv.writer(f)
+        if new_file:
+            writer.writerow(["email"])
+        writer.writerow([req.email])
+    return {"status": "ok"}
+
+# 10) (optional) serve your UI if it exists
 ui_path = "graceguide-ui/dist"
 if os.path.isdir(ui_path):
     app.mount("/", StaticFiles(directory=ui_path, html=True), name="static")
