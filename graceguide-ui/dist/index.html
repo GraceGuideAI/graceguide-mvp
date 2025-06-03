@@ -26,8 +26,43 @@
       }
     </script>
 
-    <!-- ❸ Simple font stack -->
-    <style>*{font-family:system-ui,"Inter",sans-serif}</style>
+    <!-- ❸ Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+    <!-- ❹ Global styles -->
+    <style>
+      * { font-family: "Inter", system-ui, sans-serif; }
+      .slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 9rem;
+        height: 0.5rem;
+        border-radius: 0.25rem;
+        background: #e5e7eb;
+        outline: none;
+        transition: background 0.3s ease;
+        cursor: pointer;
+      }
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 9999px;
+        background: #0054a6;
+        transition: background 0.3s ease;
+      }
+      .slider::-moz-range-thumb {
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 9999px;
+        background: #0054a6;
+        border: none;
+        transition: background 0.3s ease;
+      }
+    </style>
     <script type="module" crossorigin src="/assets/index-Cvby-ee2.js"></script>
   </head>
 
@@ -60,7 +95,7 @@
         <div class="flex items-center gap-2">
           <span class="text-xs text-gray-600">Bible</span>
           <input id="sourceToggle" type="range" min="0" max="2" step="1" value="1"
-                 class="w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" />
+                 class="slider" />
           <span class="text-xs text-gray-600">CCC</span>
         </div>
         <button
@@ -103,5 +138,4 @@
 
     <!-- Vite entry -->
   </body>
-</html>
 </html>
