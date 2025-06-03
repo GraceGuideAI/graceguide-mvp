@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from enum import Enum
 import os
 
 from langchain_community.embeddings import OpenAIEmbeddings
@@ -50,8 +51,14 @@ app.add_middleware(
 )
 
 # 7) Request and response models
+class SourceMode(str, Enum):
+    bible = "bible"
+    both = "both"
+    catechism = "catechism"
+
 class QARequest(BaseModel):
     question: str
+    mode: SourceMode = SourceMode.both
 
 class QAResponse(BaseModel):
     answer: str
@@ -60,7 +67,25 @@ class QAResponse(BaseModel):
 # 8) /qa endpoint
 @app.post("/qa", response_model=QAResponse)
 def qa(request: QARequest):
-    res = db_qa.invoke({"query": request.question})
+    # Build retriever with optional source filter
+    filter_opt = None
+    if request.mode == SourceMode.bible:
+        filter_opt = {"source": "Bible"}
+    elif request.mode == SourceMode.catechism:
+        filter_opt = {"source": "CCC"}
+
+    local_retriever = vectorstore.as_retriever(
+        search_kwargs={"k": 8, **({"filter": filter_opt} if filter_opt else {})}
+    )
+
+    chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=local_retriever,
+        chain_type_kwargs={"prompt": veritas_prompt},
+    )
+
+    res = chain.invoke({"query": request.question})
     raw = res["result"].strip()
 
     if "=== Sources ===" in raw:

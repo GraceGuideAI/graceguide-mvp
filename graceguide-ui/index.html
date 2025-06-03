@@ -54,24 +54,32 @@
         placeholder="e.g. What does the Catechism say about forgiveness?"
       ></textarea>
 
-      <!-- Ask button with inline spinner -->
-      <button
-        id="ask"
-        class="self-end bg-brand hover:bg-brand/90 text-white px-6 py-2 rounded-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <span id="askLabel">Ask</span>
-        <svg
-          id="spinner"
-          class="hidden animate-spin h-4 w-4"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none" viewBox="0 0 24 24"
+      <!-- Source toggle & Ask button -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-600">Bible</span>
+          <input id="sourceToggle" type="range" min="0" max="2" step="1" value="1"
+                 class="w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" />
+          <span class="text-xs text-gray-600">CCC</span>
+        </div>
+        <button
+          id="ask"
+          class="bg-brand hover:bg-brand/90 text-white px-6 py-2 rounded-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <circle class="opacity-25" cx="12" cy="12" r="10"
-                  stroke="currentColor" stroke-width="4" />
-          <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-        </svg>
-      </button>
+          <span id="askLabel">Ask</span>
+          <svg
+            id="spinner"
+            class="hidden animate-spin h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none" viewBox="0 0 24 24"
+          >
+            <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+          </svg>
+        </button>
+      </div>
 
       <!-- Answer area -->
       <section id="answerCard" class="hidden space-y-4">

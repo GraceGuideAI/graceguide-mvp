@@ -2,6 +2,7 @@ const askBtn   = document.getElementById("ask");
 const askLabel = document.getElementById("askLabel");
 const spinner  = document.getElementById("spinner");
 const qBox     = document.getElementById("question");
+const toggle   = document.getElementById("sourceToggle");
 const card     = document.getElementById("answerCard");
 const output   = document.getElementById("output");
 const srcList  = document.getElementById("sourceList");
@@ -16,11 +17,14 @@ async function ask() {
   spinner.classList.remove("hidden");
   card.classList.add("hidden");
 
+  const mode =
+    toggle.value === "0" ? "bible" : toggle.value === "2" ? "catechism" : "both";
+
   try {
     const res = await fetch("/qa", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: q })
+      body: JSON.stringify({ question: q, mode })
     });
     if (!res.ok) throw new Error(await res.text());
     const { answer, sources } = await res.json();
