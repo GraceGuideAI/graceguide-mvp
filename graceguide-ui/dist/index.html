@@ -62,8 +62,12 @@
         border: none;
         transition: background 0.3s ease;
       }
+      .src-btn.active {
+        background-color: #0054a6;
+        color: white;
+      }
     </style>
-    <script type="module" crossorigin src="/assets/index-BJu98hSC.js"></script>
+    <script type="module" crossorigin src="/static/assets/app-B3bNBFk7.js"></script>
   </head>
 
   <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -92,11 +96,10 @@
 
       <!-- Source toggle & Ask button -->
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-600">Bible</span>
-          <input id="sourceToggle" type="range" min="0" max="2" step="1" value="1"
-                 class="slider" />
-          <span class="text-xs text-gray-600">CCC</span>
+        <div class="flex items-center gap-2" id="sourceButtons">
+          <button class="src-btn active text-brand border border-brand rounded px-2 py-1 text-xs" data-mode="both">Both</button>
+          <button class="src-btn text-brand border border-brand rounded px-2 py-1 text-xs" data-mode="bible">Bible</button>
+          <button class="src-btn text-brand border border-brand rounded px-2 py-1 text-xs" data-mode="catechism">CCC</button>
         </div>
         <button
           id="ask"
