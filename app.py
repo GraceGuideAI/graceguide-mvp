@@ -107,7 +107,17 @@ def qa(request: QARequest):
 # 9) (optional) serve your UI if it exists
 ui_path = "graceguide-ui/dist"
 if os.path.isdir(ui_path):
-    app.mount("/", StaticFiles(directory=ui_path, html=True), name="static")
+    app.mount("/static", StaticFiles(directory=ui_path, html=False), name="static")
+
+    from fastapi.responses import FileResponse
+
+    @app.get("/", include_in_schema=False)
+    def landing_page():
+        return FileResponse(os.path.join(ui_path, "src", "landing.html"))
+
+    @app.get("/app", include_in_schema=False)
+    def qa_page():
+        return FileResponse(os.path.join(ui_path, "index.html"))
 else:
     # avoids startup crash when dist folder is missing
     print(f"Static UI not found at {ui_path}, skipping mount")
