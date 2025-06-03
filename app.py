@@ -9,7 +9,7 @@ from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOpenAI
-from templates import veritas_prompt
+from templates import prompt_for_mode
 
 # 1) Read API key
 api_key = os.getenv("OPENAI_API_KEY")
@@ -30,12 +30,12 @@ llm = ChatOpenAI(
     openai_api_key=api_key
 )
 
-# 5) Build the QA chain
+# 5) Build the QA chain with default (both sources) prompt
 db_qa = RetrievalQA.from_chain_type(
     llm=llm,
     chain_type="stuff",
     retriever=retriever,
-    chain_type_kwargs={"prompt": veritas_prompt}
+    chain_type_kwargs={"prompt": prompt_for_mode("both")}
 )
 
 # 6) Create FastAPI app and enable CORS
@@ -82,7 +82,7 @@ def qa(request: QARequest):
         llm=llm,
         chain_type="stuff",
         retriever=local_retriever,
-        chain_type_kwargs={"prompt": veritas_prompt},
+        chain_type_kwargs={"prompt": prompt_for_mode(request.mode.value)},
     )
 
     res = chain.invoke({"query": request.question})
