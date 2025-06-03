@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from enum import Enum
 import os
+import json
 
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -64,6 +65,11 @@ class QAResponse(BaseModel):
     answer: str
     sources: list[str]
 
+class FeedbackRequest(BaseModel):
+    question: str
+    answer: str
+    positive: bool
+
 # 8) /qa endpoint
 @app.post("/qa", response_model=QAResponse)
 def qa(request: QARequest):
@@ -103,6 +109,18 @@ def qa(request: QARequest):
         answer=answer_text.strip(),
         sources=sources
     )
+
+# 9) feedback endpoint
+@app.post("/feedback")
+def feedback(req: FeedbackRequest):
+    entry = {
+        "question": req.question,
+        "answer": req.answer,
+        "positive": req.positive,
+    }
+    with open("feedback.log", "a", encoding="utf-8") as f:
+        f.write(json.dumps(entry) + "\n")
+    return {"status": "ok"}
 
 # 9) (optional) serve your UI if it exists
 ui_path = "graceguide-ui/dist"

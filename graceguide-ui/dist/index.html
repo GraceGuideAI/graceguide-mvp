@@ -34,36 +34,11 @@
     <!-- ❹ Global styles -->
     <style>
       * { font-family: "Inter", system-ui, sans-serif; }
-      .slider {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 9rem;
-        height: 0.5rem;
-        border-radius: 0.25rem;
-        background: #e5e7eb;
-        outline: none;
-        transition: background 0.3s ease;
-        cursor: pointer;
-      }
-      .slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 1.25rem;
-        height: 1.25rem;
-        border-radius: 9999px;
-        background: #0054a6;
-        transition: background 0.3s ease;
-      }
-      .slider::-moz-range-thumb {
-        width: 1.25rem;
-        height: 1.25rem;
-        border-radius: 9999px;
-        background: #0054a6;
-        border: none;
-        transition: background 0.3s ease;
+      .src-btn.active {
+        @apply bg-brand text-white;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-Cvby-ee2.js"></script>
+    <script type="module" crossorigin src="/assets/index-CVJFymyd.js"></script>
   </head>
 
   <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -78,11 +53,12 @@
     </header>
 
     <!-- ░░░ Main Q&A ░░░ -->
-    <main
-      class="w-full max-w-xl mx-auto flex-1 px-4 py-8 flex flex-col space-y-6"
-    >
-      <!-- Question -->
-      <label class="text-sm font-medium text-gray-700">Ask your question</label>
+      <main
+        class="w-full max-w-5xl mx-auto flex-1 px-4 lg:px-8 py-8 lg:grid lg:grid-cols-3 gap-8"
+      >
+      <div class="lg:col-span-2 flex flex-col space-y-6">
+        <!-- Question -->
+        <label class="text-sm font-medium text-gray-700">Ask your question</label>
       <textarea
         id="question"
         rows="4"
@@ -90,18 +66,26 @@
         placeholder="e.g. What does the Catechism say about forgiveness?"
       ></textarea>
 
-      <!-- Source toggle & Ask button -->
+      <!-- Source buttons & Ask button -->
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-600">Bible</span>
-          <input id="sourceToggle" type="range" min="0" max="2" step="1" value="1"
-                 class="slider" />
-          <span class="text-xs text-gray-600">CCC</span>
+        <div id="sourceButtons" class="flex items-center gap-2">
+          <button data-source-mode="bible" class="src-btn px-2 py-1 border rounded-md text-sm flex items-center gap-1">
+            <span>✝️</span><span>Bible</span>
+          </button>
+          <button data-source-mode="catechism" class="src-btn px-2 py-1 border rounded-md text-sm flex items-center gap-1">
+            <span>📖</span><span>Catechism</span>
+          </button>
+          <button data-source-mode="both" class="src-btn px-2 py-1 border rounded-md text-sm flex items-center gap-1">
+            <span>✝️📖</span><span>Both</span>
+          </button>
         </div>
         <button
           id="ask"
           class="bg-brand hover:bg-brand/90 text-white px-6 py-2 rounded-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
+          <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m2.35-6.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
           <span id="askLabel">Ask</span>
           <svg
             id="spinner"
@@ -123,14 +107,26 @@
         <pre
           id="output"
           class="whitespace-pre-wrap bg-white p-4 rounded-md border border-gray-200 text-gray-800"
-        ></pre>
+        >Your answer will appear here</pre>
+        <div class="flex items-center gap-4">
+          <button id="share" class="text-sm text-brand underline">Share Answer</button>
+          <div class="flex items-center gap-2" id="feedbackBtns">
+            <button id="good" class="text-xl">👍</button>
+            <button id="bad" class="text-xl">👎</button>
+          </div>
+        </div>
         <h3 class="text-md font-semibold">Sources</h3>
         <ul
           id="sourceList"
           class="list-disc pl-6 space-y-1 text-gray-700"
         ></ul>
       </section>
-    </main>
+      </div>
+      <aside class="mt-8 lg:mt-0" id="sidebar">
+        <h2 class="text-lg font-semibold">Recent Questions</h2>
+        <ul id="recentList" class="mt-2 space-y-2 text-sm"></ul>
+      </aside>
+      </main>
 
     <footer class="text-center text-xs text-gray-500 py-4">
       © 2025 GraceGuideAI · Beta preview
