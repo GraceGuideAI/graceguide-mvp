@@ -47,15 +47,7 @@ llm = ChatOpenAI(
     openai_api_key=api_key
 )
 
-# 5) Build the QA chain with default (both sources) prompt
-db_qa = RetrievalQA.from_chain_type(
-    llm=llm,
-    chain_type="stuff",
-    retriever=retriever,
-    chain_type_kwargs={"prompt": prompt_for_mode("both")}
-)
-
-# 6) Create FastAPI app and enable CORS
+# 5) Create FastAPI app and enable CORS
 app = FastAPI(title="Veritas AI QA API")
 app.add_middleware(
     CORSMiddleware,
@@ -67,7 +59,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 7) Request and response models
+# 6) Request and response models
 class SourceMode(str, Enum):
     bible = "bible"
     both = "both"
@@ -84,7 +76,7 @@ class QAResponse(BaseModel):
 class SubscribeRequest(BaseModel):
     email: str
 
-# 8) /qa endpoint
+# 7) /qa endpoint
 @app.post("/qa", response_model=QAResponse)
 def qa(request: QARequest):
     key = f"{request.mode.value}|{request.question.strip()}"
@@ -133,7 +125,7 @@ def qa(request: QARequest):
         pass
     return QAResponse(**resp)
 
-# 9) /subscribe endpoint to capture emails
+# 8) /subscribe endpoint to capture emails
 @app.post("/subscribe")
 def subscribe(req: SubscribeRequest):
     import csv
@@ -146,7 +138,7 @@ def subscribe(req: SubscribeRequest):
         writer.writerow([req.email])
     return {"status": "ok"}
 
-# 10) (optional) serve your UI if it exists
+# 9) (optional) serve your UI if it exists
 ui_path = "graceguide-ui/dist"
 if os.path.isdir(ui_path):
     app.mount("/static", StaticFiles(directory=ui_path, html=False), name="static")
