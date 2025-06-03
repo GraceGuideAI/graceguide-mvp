@@ -7,6 +7,23 @@ const card     = document.getElementById("answerCard");
 const output   = document.getElementById("output");
 const srcList  = document.getElementById("sourceList");
 
+const emailModal   = document.getElementById("emailModal");
+const joinNowBtn   = document.getElementById("joinNow");
+const maybeLaterBtn = document.getElementById("maybeLater");
+const emailInput   = document.getElementById("emailInput");
+const consentCheckbox = document.getElementById("consentCheckbox");
+
+let askCount = parseInt(localStorage.getItem("askCount") || "0", 10);
+if (askCount < 7) sessionStorage.removeItem("modalShown");
+
+function showModal() {
+  emailModal.classList.remove("hidden");
+}
+
+function hideModal() {
+  emailModal.classList.add("hidden");
+}
+
 async function ask() {
   const q = qBox.value.trim();
   if (!q) return;
@@ -40,6 +57,14 @@ async function ask() {
     });
 
     card.classList.remove("hidden");
+
+    // Track successful questions
+    askCount += 1;
+    localStorage.setItem("askCount", askCount);
+    if (askCount === 7 && !sessionStorage.getItem("modalShown")) {
+      sessionStorage.setItem("modalShown", "true");
+      showModal();
+    }
   } catch (err) {
     alert("Error: " + err.message);
   } finally {
@@ -53,3 +78,24 @@ askBtn.addEventListener("click", ask);
 qBox.addEventListener("keydown", e => {
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) ask();
 });
+
+joinNowBtn.addEventListener("click", async () => {
+  const email = emailInput.value.trim();
+  if (!email || !consentCheckbox.checked) {
+    alert("Please provide an email and consent.");
+    return;
+  }
+  try {
+    const res = await fetch("/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    hideModal();
+  } catch (err) {
+    alert("Subscription failed: " + err.message);
+  }
+});
+
+maybeLaterBtn.addEventListener("click", hideModal);

@@ -135,6 +135,40 @@
       © 2025 GraceGuideAI · Beta preview
     </footer>
 
+    <!-- Email capture modal -->
+    <div
+      id="emailModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+    >
+      <div class="bg-white p-6 rounded-md space-y-4 w-80">
+        <p class="text-gray-700">Get weekly answers by email</p>
+        <input
+          id="emailInput"
+          type="email"
+          placeholder="Email address"
+          class="w-full border p-2 rounded-md"
+        />
+        <label class="flex items-center text-sm text-gray-600">
+          <input id="consentCheckbox" type="checkbox" class="mr-2" />
+          I consent to receive updates
+        </label>
+        <div class="flex justify-end gap-2">
+          <button
+            id="joinNow"
+            class="bg-brand text-white px-4 py-2 rounded-md"
+          >
+            Join Now
+          </button>
+          <button
+            id="maybeLater"
+            class="border px-4 py-2 rounded-md"
+          >
+            Maybe Later
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Vite entry -->
     <script type="module" src="/src/main.js"></script>
   </body>
