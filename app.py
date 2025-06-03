@@ -4,6 +4,19 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from enum import Enum
 import os
+import json
+from pathlib import Path
+
+# Cache file setup
+CACHE_FILE = Path("qa_cache.json")
+if CACHE_FILE.exists():
+    try:
+        with CACHE_FILE.open("r") as f:
+            cache = json.load(f)
+    except Exception:
+        cache = {}
+else:
+    cache = {}
 
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -13,6 +26,10 @@ from templates import prompt_for_mode
 
 # 1) Read API key
 api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise RuntimeError(
+        "OPENAI_API_KEY environment variable not set. Please provide your OpenAI API key."
+    )
 
 # 2) Load the Chroma vector store
 vectorstore = Chroma(
@@ -67,6 +84,10 @@ class QAResponse(BaseModel):
 # 8) /qa endpoint
 @app.post("/qa", response_model=QAResponse)
 def qa(request: QARequest):
+    key = f"{request.mode.value}|{request.question.strip()}"
+    cached = cache.get(key)
+    if cached:
+        return QAResponse(**cached)
     # Build retriever with optional source filter
     filter_opt = None
     if request.mode == SourceMode.bible:
@@ -99,10 +120,15 @@ def qa(request: QARequest):
         if line.strip().startswith("- ")
     ]
 
-    return QAResponse(
-        answer=answer_text.strip(),
-        sources=sources
-    )
+    answer = answer_text.strip()
+    resp = {"answer": answer, "sources": sources}
+    cache[key] = resp
+    try:
+        with CACHE_FILE.open("w") as f:
+            json.dump(cache, f)
+    except Exception:
+        pass
+    return QAResponse(**resp)
 
 # 9) (optional) serve your UI if it exists
 ui_path = "graceguide-ui/dist"
