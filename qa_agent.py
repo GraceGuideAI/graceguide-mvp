@@ -1,8 +1,7 @@
 import os
-from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_chroma import Chroma
 from langchain.chains import RetrievalQA
-from langchain_community.chat_models import ChatOpenAI
 from templates import veritas_prompt
 
 # 1) Read API key
