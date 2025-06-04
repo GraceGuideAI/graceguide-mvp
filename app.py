@@ -131,13 +131,58 @@ def qa(request: QARequest):
 @app.post("/subscribe")
 def subscribe(req: SubscribeRequest):
     import csv
-    fname = "subscribers.csv"
-    new_file = not os.path.isfile(fname)
-    with open(fname, "a", newline="") as f:
+    import hashlib
+    import requests
+
+    email = req.email.strip().lower()
+    csv_fname = "subscribers.csv"
+
+    def ensure_csv():
+        if not os.path.isfile(csv_fname):
+            with open(csv_fname, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["email"])
+
+    def email_in_csv() -> bool:
+        if not os.path.isfile(csv_fname):
+            return False
+        with open(csv_fname, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get("email", "").strip().lower() == email:
+                    return True
+        return False
+
+    mc_key = os.getenv("MAILCHIMP_API_KEY")
+    mc_server = os.getenv("MAILCHIMP_SERVER_PREFIX")
+    mc_list = os.getenv("MAILCHIMP_LIST_ID")
+
+    if mc_key and mc_server and mc_list:
+        auth = ("anystring", mc_key)
+        member_hash = hashlib.md5(email.encode()).hexdigest()
+        base_url = f"https://{mc_server}.api.mailchimp.com/3.0"
+        member_url = f"{base_url}/lists/{mc_list}/members/{member_hash}"
+        try:
+            r = requests.get(member_url, auth=auth, timeout=10)
+            if r.status_code == 200:
+                return {"status": "already_subscribed"}
+            if r.status_code != 404:
+                raise Exception(f"GET {r.status_code}: {r.text}")
+
+            data = {"email_address": email, "status": "subscribed"}
+            r = requests.put(member_url, auth=auth, json=data, timeout=10)
+            if 200 <= r.status_code < 300:
+                return {"status": "ok"}
+            raise Exception(f"PUT {r.status_code}: {r.text}")
+        except Exception as e:
+            print(f"Mailchimp error: {e}")
+
+    ensure_csv()
+    if email_in_csv():
+        return {"status": "already_subscribed"}
+    with open(csv_fname, "a", newline="") as f:
         writer = csv.writer(f)
-        if new_file:
-            writer.writerow(["email"])
-        writer.writerow([req.email])
+        writer.writerow([email])
     return {"status": "ok"}
 
 # 9) (optional) serve your UI if it exists

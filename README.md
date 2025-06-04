@@ -43,6 +43,10 @@ export MAILCHIMP_SERVER_PREFIX=us1        # e.g. 'us1'
 export MAILCHIMP_LIST_ID=abc123456
 ```
 
+If these variables are not set or Mailchimp returns an error, emails are stored
+locally in `subscribers.csv`. The endpoint checks both your Mailchimp list and
+the CSV file to avoid duplicates.
+
 ## Building the Chroma database
 
 Run the build script once after setting `OPENAI_API_KEY`:
