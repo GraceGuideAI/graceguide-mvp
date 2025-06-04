@@ -25,7 +25,7 @@ const joinLabel = document.getElementById("joinLabel");
 const joinSpinner = document.getElementById("joinSpinner");
 const maybeLaterBtn = document.getElementById("maybeLater");
 const emailInput   = document.getElementById("emailInput");
-const consentCheckbox = document.getElementById("consentCheckbox");
+const closeModalBtn = document.getElementById("closeModal");
 
 let mode = "both";
 sourceSlider.addEventListener("input", () => {
@@ -34,14 +34,18 @@ sourceSlider.addEventListener("input", () => {
 });
 
 let askCount = parseInt(localStorage.getItem("askCount") || "0", 10);
-if (askCount < 7) sessionStorage.removeItem("modalShown");
+let maybeLaterUntil = parseInt(localStorage.getItem("maybeLaterUntil") || "0", 10);
+if (askCount < 5 || askCount < maybeLaterUntil) sessionStorage.removeItem("modalShown");
 
 function showModal() {
+  console.log("Showing email modal");
   emailModal.classList.remove("hidden");
+  requestAnimationFrame(() => emailModal.classList.remove("opacity-0"));
+  emailInput.focus();
 }
 
 function hideModal() {
-  emailModal.classList.add("hidden");
+
 }
 
 function renderHistory() {
@@ -114,7 +118,13 @@ async function ask() {
     // Track successful questions
     askCount += 1;
     localStorage.setItem("askCount", askCount);
-    if (askCount === 7 && !sessionStorage.getItem("modalShown")) {
+    const subscribed = localStorage.getItem("subscribed");
+    maybeLaterUntil = parseInt(localStorage.getItem("maybeLaterUntil") || "0", 10);
+    const shouldShow = !subscribed &&
+                       askCount >= 5 &&
+                       askCount >= maybeLaterUntil &&
+                       !sessionStorage.getItem("modalShown");
+    if (shouldShow) {
       sessionStorage.setItem("modalShown", "true");
       showModal();
     }
@@ -133,10 +143,7 @@ qBox.addEventListener("keydown", e => {
 });
 
 joinNowBtn.addEventListener("click", async () => {
-  const email = emailInput.value.trim().toLowerCase();
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailPattern.test(email) || !consentCheckbox.checked) {
-    alert("Please provide a valid email and consent.");
+
     return;
   }
 
@@ -152,8 +159,6 @@ joinNowBtn.addEventListener("click", async () => {
     });
     if (!res.ok) throw new Error(await res.text());
 
-    localStorage.setItem("subscribed", "true");
-    alert("Thanks for subscribing!");
     hideModal();
   } catch (err) {
     console.error("Subscription failed", err);
@@ -165,7 +170,12 @@ joinNowBtn.addEventListener("click", async () => {
   }
 });
 
-maybeLaterBtn.addEventListener("click", hideModal);
+maybeLaterBtn.addEventListener("click", () => {
+  maybeLaterUntil = askCount + 10;
+  localStorage.setItem("maybeLaterUntil", maybeLaterUntil);
+  hideModal();
+});
+
 
 
 const lgQuery = window.matchMedia("(min-width: 1024px)");
