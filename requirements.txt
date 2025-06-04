@@ -7,3 +7,4 @@ openai
 tiktoken
 langchain-openai
 langchain-chroma
+requests
