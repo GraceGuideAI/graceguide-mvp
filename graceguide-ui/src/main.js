@@ -10,6 +10,14 @@ const historyList = document.getElementById("historyList");
 const historyToggles = document.querySelectorAll("#historyToggle");
 const historySidebar = document.getElementById("history");
 const qaContainer = document.getElementById("qaContainer");
+const themeToggle = document.getElementById("themeToggle");
+
+const root = document.documentElement;
+if (localStorage.theme === "dark") root.classList.add("dark");
+themeToggle.addEventListener("click", () => {
+  const enabled = root.classList.toggle("dark");
+  localStorage.theme = enabled ? "dark" : "light";
+});
 
 const emailModal   = document.getElementById("emailModal");
 const joinNowBtn   = document.getElementById("joinNow");
