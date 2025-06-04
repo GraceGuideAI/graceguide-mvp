@@ -26,6 +26,7 @@ const joinSpinner = document.getElementById("joinSpinner");
 const maybeLaterBtn = document.getElementById("maybeLater");
 const emailInput   = document.getElementById("emailInput");
 const closeModalBtn = document.getElementById("closeModal");
+const modalContent = document.getElementById("modalContent");
 
 async function logEvent(event) {
   try {
@@ -50,11 +51,24 @@ if (askCount < 5 || askCount < maybeLaterUntil) sessionStorage.removeItem("modal
 function showModal() {
   console.log("Showing email modal");
   emailModal.classList.remove("hidden");
-
+  emailModal.classList.remove("opacity-0");
+  modalContent.classList.remove("opacity-0", "scale-90");
+  requestAnimationFrame(() => {
+    emailModal.classList.add("opacity-100");
+    modalContent.classList.add("opacity-100", "scale-100");
+  });
+  logEvent("modal_shown");
+  emailInput.focus();
 }
 
 function hideModal() {
-
+  emailModal.classList.remove("opacity-100");
+  emailModal.classList.add("opacity-0");
+  modalContent.classList.remove("opacity-100", "scale-100");
+  modalContent.classList.add("opacity-0", "scale-90");
+  setTimeout(() => {
+    emailModal.classList.add("hidden");
+  }, 300);
 }
 
 function renderHistory() {
@@ -152,7 +166,10 @@ qBox.addEventListener("keydown", e => {
 });
 
 joinNowBtn.addEventListener("click", async () => {
-
+  const email = emailInput.value.trim();
+  if (!email) {
+    alert("Please enter a valid email address.");
+    emailInput.focus();
     return;
   }
 
@@ -168,18 +185,31 @@ joinNowBtn.addEventListener("click", async () => {
     });
     if (!res.ok) throw new Error(await res.text());
 
+    localStorage.setItem("subscribed", "true");
     hideModal();
     logEvent("email_success");
   } catch (err) {
     console.error("Subscription failed", err);
     alert("Subscription failed: " + err.message);
-
+    logEvent("email_failure");
+  } finally {
+    joinSpinner.classList.add("hidden");
+    joinLabel.classList.remove("hidden");
+    joinNowBtn.disabled = false;
   }
 });
 
 maybeLaterBtn.addEventListener("click", () => {
+  maybeLaterUntil = askCount + 10;
+  localStorage.setItem("maybeLaterUntil", maybeLaterUntil);
+  hideModal();
+  logEvent("maybe_later");
+});
 
-
+closeModalBtn.addEventListener("click", () => {
+  hideModal();
+  logEvent("modal_close");
+});
 
 const lgQuery = window.matchMedia("(min-width: 1024px)");
 

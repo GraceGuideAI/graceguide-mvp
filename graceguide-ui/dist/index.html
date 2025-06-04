@@ -107,7 +107,7 @@
         margin-left: 0.5rem;
       }
     </style>
-
+    <script type="module" crossorigin src="/static/assets/app-NqbLJ2SU.js"></script>
   </head>
 
   <body class="bg-gray-50 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
@@ -228,44 +228,30 @@
     <!-- Email capture modal -->
     <div
       id="emailModal"
-      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+      class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300"
     >
-      <div class="bg-white dark:bg-gray-800 p-6 rounded-md space-y-4 w-80">
-        <p class="text-gray-700 dark:text-gray-100">Get weekly answers by email</p>
-        <input
-          id="emailInput"
-          type="email"
-          placeholder="Email address"
-          class="w-full border p-2 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-        />
-        <label class="flex items-center text-sm text-gray-600 dark:text-gray-100">
-          <input id="consentCheckbox" type="checkbox" class="mr-2" />
-          I consent to receive updates
-        </label>
-        <div class="flex justify-end gap-2">
-          <button
-            id="joinNow"
-            class="bg-brand text-white px-4 py-2 rounded-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span id="joinLabel">Join Now</span>
-            <svg
-              id="joinSpinner"
-              class="hidden animate-spin h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none" viewBox="0 0 24 24"
-            >
-              <circle class="opacity-25" cx="12" cy="12" r="10"
-                      stroke="currentColor" stroke-width="4" />
-              <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+      <div id="modalContent" class="opacity-0 scale-90 transform transition-all duration-300 bg-white dark:bg-gray-800 rounded-[16px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] w-11/12 max-w-xl h-auto p-8 space-y-4" role="dialog" aria-labelledby="newsletterTitle" aria-modal="true">
+        <header class="flex justify-between items-center bg-[#1e3a8a] text-white -mt-8 -mx-8 p-4 rounded-t-[16px]">
+          <h2 id="newsletterTitle" class="text-lg font-semibold flex items-center gap-2">
+            <span>✟</span>
+            Join 100+ Catholics deepening their faith daily
+          </h2>
+          <button id="closeModal" class="text-white text-xl leading-none" aria-label="Close">&times;</button>
+        </header>
+        <p class="text-sm text-gray-700 dark:text-gray-300">
+          Receive weekly Gospel reflections, Scripture insights, and spiritual guidance directly to your inbox.
+        </p>
+        <input id="emailInput" aria-label="Email address" type="email" placeholder="Email address" class="w-full border p-3 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
+        <p class="text-xs text-gray-500 dark:text-gray-400">Unsubscribe anytime with one click.</p>
+        <div class="flex justify-end gap-4">
+          <button id="joinNow" class="bg-gradient-to-r from-blue-700 to-blue-500 text-white px-6 py-3 rounded-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            <span id="joinLabel">Join Our Faith Community</span>
+            <svg id="joinSpinner" class="hidden animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
             </svg>
           </button>
-          <button
-            id="maybeLater"
-            class="border px-4 py-2 rounded-md"
-          >
-            Maybe Later
-          </button>
+          <button id="maybeLater" class="text-brand underline">Maybe Later</button>
         </div>
       </div>
     </div>
