@@ -32,13 +32,16 @@ sourceSlider.addEventListener("input", () => {
 });
 
 let askCount = parseInt(localStorage.getItem("askCount") || "0", 10);
-if (askCount < 7) sessionStorage.removeItem("modalShown");
+let maybeLaterUntil = parseInt(localStorage.getItem("maybeLaterUntil") || "0", 10);
+if (askCount < 5 || askCount < maybeLaterUntil) sessionStorage.removeItem("modalShown");
 
 function showModal() {
+  console.log("Showing email modal");
   emailModal.classList.remove("hidden");
 }
 
 function hideModal() {
+  console.log("Hiding email modal");
   emailModal.classList.add("hidden");
 }
 
@@ -112,7 +115,13 @@ async function ask() {
     // Track successful questions
     askCount += 1;
     localStorage.setItem("askCount", askCount);
-    if (askCount === 7 && !sessionStorage.getItem("modalShown")) {
+    const subscribed = localStorage.getItem("subscribed");
+    maybeLaterUntil = parseInt(localStorage.getItem("maybeLaterUntil") || "0", 10);
+    const shouldShow = !subscribed &&
+                       askCount >= 5 &&
+                       askCount >= maybeLaterUntil &&
+                       !sessionStorage.getItem("modalShown");
+    if (shouldShow) {
       sessionStorage.setItem("modalShown", "true");
       showModal();
     }
@@ -143,13 +152,18 @@ joinNowBtn.addEventListener("click", async () => {
       body: JSON.stringify({ email })
     });
     if (!res.ok) throw new Error(await res.text());
+    localStorage.setItem("subscribed", "true");
     hideModal();
   } catch (err) {
     alert("Subscription failed: " + err.message);
   }
 });
 
-maybeLaterBtn.addEventListener("click", hideModal);
+maybeLaterBtn.addEventListener("click", () => {
+  maybeLaterUntil = askCount + 10;
+  localStorage.setItem("maybeLaterUntil", maybeLaterUntil);
+  hideModal();
+});
 
 
 const lgQuery = window.matchMedia("(min-width: 1024px)");
