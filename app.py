@@ -147,7 +147,7 @@ if os.path.isdir(ui_path):
 
     @app.get("/", include_in_schema=False)
     def landing_page():
-        return FileResponse(os.path.join(ui_path, "src", "landing.html"))
+        return FileResponse(os.path.join(ui_path, "index.html"))
 
     @app.get("/app", include_in_schema=False)
     def qa_page():
