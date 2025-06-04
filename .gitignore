@@ -2,3 +2,5 @@ veritas_ai_chroma_db/
 __pycache__/
 *.exe
 feedback.log
+
+dist/
