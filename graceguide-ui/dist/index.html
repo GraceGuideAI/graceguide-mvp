@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>GraceGuideAI — Catholic Q & A</title>
+
+    <!-- Google AdSense (must stay!) -->
+    <script async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5110239623159372"
+            crossorigin="anonymous"></script>
+
+    <!-- ❶ Tailwind CDN (quickest route for MVP) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ❷ Dark‑mode + brand colour (Marian blue) -->
+    <script>
+      tailwind.config = {
+        darkMode: "media",
+        theme: {
+          extend: { colors: { brand: "#0054a6" } }
+        }
+      }
+    </script>
+
+    <!-- ❸ Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+    <!-- ❹ Global styles -->
+    <style>
+      * { font-family: "Inter", system-ui, sans-serif; }
+      .slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 9rem;
+        height: 0.5rem;
+        border-radius: 0.25rem;
+        background: #e5e7eb;
+        outline: none;
+        transition: background 0.3s ease;
+        cursor: pointer;
+      }
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 9999px;
+        background: #0054a6;
+        transition: background 0.3s ease;
+      }
+      .slider::-moz-range-thumb {
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 9999px;
+        background: #0054a6;
+        border: none;
+        transition: background 0.3s ease;
+      }
+      .src-btn.active {
+        background-color: #0054a6;
+        color: white;
+      }
+    </style>
+    <script type="module" crossorigin src="/static/assets/app-B3bNBFk7.js"></script>
+  </head>
+
+  <body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- ░░░ Header ░░░ -->
+    <header class="bg-brand text-white px-4 py-6">
+      <h1 class="text-2xl sm:text-3xl font-semibold text-center sm:text-left">
+        GraceGuideAI&nbsp;<span class="font-light">Beta</span>
+      </h1>
+      <p class="mt-2 text-center sm:text-left opacity-90">
+        Catholic answers powered by Scripture&nbsp;&amp;&nbsp;Catechism
+      </p>
+    </header>
+
+    <!-- ░░░ Main Q&A ░░░ -->
+    <main
+      class="w-full max-w-xl mx-auto flex-1 px-4 py-8 flex flex-col space-y-6"
+    >
+      <!-- Question -->
+      <label class="text-sm font-medium text-gray-700">Ask your question</label>
+      <textarea
+        id="question"
+        rows="4"
+        class="mt-1 p-3 w-full rounded-md border border-gray-300 focus:border-brand focus:ring-brand/20 resize-y"
+        placeholder="e.g. What does the Catechism say about forgiveness?"
+      ></textarea>
+
+      <!-- Source toggle & Ask button -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2" id="sourceButtons">
+          <button class="src-btn active text-brand border border-brand rounded px-2 py-1 text-xs" data-mode="both">Both</button>
+          <button class="src-btn text-brand border border-brand rounded px-2 py-1 text-xs" data-mode="bible">Bible</button>
+          <button class="src-btn text-brand border border-brand rounded px-2 py-1 text-xs" data-mode="catechism">CCC</button>
+        </div>
+        <button
+          id="ask"
+          class="bg-brand hover:bg-brand/90 text-white px-6 py-2 rounded-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span id="askLabel">Ask</span>
+          <svg
+            id="spinner"
+            class="hidden animate-spin h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none" viewBox="0 0 24 24"
+          >
+            <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Answer area -->
+      <section id="answerCard" class="hidden space-y-4">
+        <h2 class="text-lg font-semibold">Answer</h2>
+        <pre
+          id="output"
+          class="whitespace-pre-wrap bg-white p-4 rounded-md border border-gray-200 text-gray-800"
+        ></pre>
+        <h3 class="text-md font-semibold">Sources</h3>
+        <ul
+          id="sourceList"
+          class="list-disc pl-6 space-y-1 text-gray-700"
+        ></ul>
+      </section>
+    </main>
+
+    <footer class="text-center text-xs text-gray-500 py-4">
+      © 2025 GraceGuideAI · Beta preview
+    </footer>
+
+    <!-- Email capture modal -->
+    <div
+      id="emailModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+    >
+      <div class="bg-white p-6 rounded-md space-y-4 w-80">
+        <p class="text-gray-700">Get weekly answers by email</p>
+        <input
+          id="emailInput"
+          type="email"
+          placeholder="Email address"
+          class="w-full border p-2 rounded-md"
+        />
+        <label class="flex items-center text-sm text-gray-600">
+          <input id="consentCheckbox" type="checkbox" class="mr-2" />
+          I consent to receive updates
+        </label>
+        <div class="flex justify-end gap-2">
+          <button
+            id="joinNow"
+            class="bg-brand text-white px-4 py-2 rounded-md"
+          >
+            Join Now
+          </button>
+          <button
+            id="maybeLater"
+            class="border px-4 py-2 rounded-md"
+          >
+            Maybe Later
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vite entry -->
+  </body>
+</html>
