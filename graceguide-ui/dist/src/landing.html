@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GraceGuideAI &mdash; Discover</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "media",
+        theme: { extend: { colors: { brand: "#0054a6" } } }
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      body { font-family: 'Roboto', sans-serif; }
+      h1 { font-family: 'Playfair Display', serif; }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col bg-cover bg-center" style="background-image:url('https://source.unsplash.com/1600x900/?stained-glass');">
+    <header class="py-8 text-center text-white" style="background:linear-gradient(to right,#4A90E2,#FFD700);">
+      <div class="flex justify-center items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24"><path d="M10 2v6H4v8h6v6h4v-6h6V8h-6V2z"/></svg>
+        <h1 class="text-3xl font-bold">GraceGuideAI <span class="font-normal">Beta</span></h1>
+      </div>
+      <p class="mt-2 text-lg">Catholic answers powered by Scripture &amp; Catechism</p>
+    </header>
+    <main class="flex-1 flex flex-col items-center justify-center backdrop-blur-sm bg-white/70 py-16 px-4 text-center space-y-6">
+      <h2 class="text-2xl font-semibold">Discover GraceGuideAI</h2>
+      <p class="max-w-xl">GraceGuideAI provides quick access to reliable Catholic teaching drawn from the Bible and Catechism. Ask questions and receive faithful answers in seconds.</p>
+      <img src="https://placehold.co/600x400?text=App+Mockup" alt="App screenshot" class="rounded shadow-lg max-w-full" />
+      <a href="/app" class="mt-6 inline-block bg-brand text-white px-6 py-3 rounded-md shadow hover:bg-brand/90">Try It Now</a>
+    </main>
+  </body>
+</html>
