@@ -78,12 +78,17 @@
         background-color: #f3f4f6; /* gray-100 */
       }
     </style>
-    <script type="module" crossorigin src="/static/assets/app-D66GUCMr.js"></script>
+    <script type="module" crossorigin src="/static/assets/app-C28Nc-jH.js"></script>
   </head>
 
   <body class="bg-gray-50 min-h-screen flex flex-col">
     <!-- ░░░ Header ░░░ -->
-    <header class="bg-brand text-white px-4 py-6">
+    <header class="relative bg-brand text-white px-4 py-6">
+      <button id="historyToggle" class="absolute left-4 top-4 p-2 rounded-md focus:outline-none">
+        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
       <h1 class="text-2xl sm:text-3xl font-semibold text-center sm:text-left">
         GraceGuideAI&nbsp;<span class="font-light">Beta</span>
       </h1>
@@ -96,6 +101,12 @@
     <main
       class="w-full max-w-4xl mx-auto flex-1 px-4 py-8 flex flex-col lg:flex-row gap-6"
     >
+      <aside id="history" class="fixed inset-y-0 left-0 z-30 w-72 bg-white p-4 border border-gray-200 rounded-r-md overflow-y-auto transform -translate-x-full transition-transform">
+        <h2 class="text-lg font-semibold">Past Answers</h2>
+        <hr class="my-2 border-gray-200" />
+        <ul id="historyList" class="space-y-4 text-sm"></ul>
+      </aside>
+
       <div id="qaContainer" class="flex-1 flex flex-col space-y-6">
       <!-- Question -->
       <label class="text-sm font-medium text-gray-700">Ask your question</label>
@@ -157,10 +168,6 @@
         ></ul>
       </section>
       </div>
-      <aside id="history" class="hidden lg:block w-72 bg-white p-4 border border-gray-200 rounded-md overflow-y-auto">
-        <h2 class="text-lg font-semibold mb-2">Past Answers</h2>
-        <ul id="historyList" class="space-y-4 text-sm"></ul>
-      </aside>
     </main>
 
     <footer class="text-center text-xs text-gray-500 py-4">

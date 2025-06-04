@@ -7,6 +7,8 @@ const card     = document.getElementById("answerCard");
 const output   = document.getElementById("output");
 const srcList  = document.getElementById("sourceList");
 const historyList = document.getElementById("historyList");
+const historyToggle = document.getElementById("historyToggle");
+const historySidebar = document.getElementById("history");
 
 const emailModal   = document.getElementById("emailModal");
 const joinNowBtn   = document.getElementById("joinNow");
@@ -132,3 +134,36 @@ joinNowBtn.addEventListener("click", async () => {
 });
 
 maybeLaterBtn.addEventListener("click", hideModal);
+
+let historyOpen = false;
+
+function openHistory() {
+  historySidebar.classList.remove("-translate-x-full");
+  historyOpen = true;
+}
+
+function closeHistory() {
+  historySidebar.classList.add("-translate-x-full");
+  historyOpen = false;
+}
+
+historyToggle.addEventListener("click", e => {
+  e.stopPropagation();
+  if (historyOpen) {
+    closeHistory();
+  } else {
+    openHistory();
+  }
+});
+
+document.addEventListener("click", e => {
+  if (historyOpen && !historySidebar.contains(e.target) && e.target !== historyToggle) {
+    closeHistory();
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if (historyOpen && e.key === "Escape") {
+    closeHistory();
+  }
+});
