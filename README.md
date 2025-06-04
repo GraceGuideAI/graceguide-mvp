@@ -24,6 +24,9 @@ npm install
 # Installs Vite and other packages so the build script can run successfully
 ```
 
+`npm run build` now runs `npm ci` automatically via a `prebuild` script, so packages
+will be installed if they're missing.
+
 ## Environment variables
 
 Set your OpenAI key so both the database script and the API can embed and query text:
@@ -69,6 +72,9 @@ To build the static frontend with Vite use the provided script:
 ```bash
 ./scripts/build_frontend.sh
 ```
+
+You can also run `npm run build` directly; it will install dependencies first
+thanks to the new `prebuild` step.
 
 The output appears in `graceguide-ui/dist/`. When the API is running these files are served as the root website so you can navigate to `http://localhost:8000/` to use the app.
 
