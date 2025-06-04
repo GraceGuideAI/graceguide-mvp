@@ -27,6 +27,14 @@ const maybeLaterBtn = document.getElementById("maybeLater");
 const emailInput   = document.getElementById("emailInput");
 const closeModalBtn = document.getElementById("closeModal");
 const modalContent = document.getElementById("modalContent");
+const shareModal   = document.getElementById("shareModal");
+const shareContent = document.getElementById("shareContent");
+const sharePreview = document.getElementById("sharePreview");
+const downloadShare = document.getElementById("downloadShare");
+const tweetShare = document.getElementById("tweetShare");
+const instaShare = document.getElementById("instaShare");
+const emailShare = document.getElementById("emailShare");
+const closeShare = document.getElementById("closeShare");
 
 async function logEvent(event) {
   try {
@@ -71,6 +79,65 @@ function hideModal() {
   }, 300);
 }
 
+function showShareModal() {
+  shareModal.classList.remove("hidden");
+  shareModal.classList.remove("opacity-0");
+  shareContent.classList.remove("opacity-0", "scale-90");
+  requestAnimationFrame(() => {
+    shareModal.classList.add("opacity-100");
+    shareContent.classList.add("opacity-100", "scale-100");
+  });
+}
+
+function hideShareModal() {
+  shareModal.classList.remove("opacity-100");
+  shareModal.classList.add("opacity-0");
+  shareContent.classList.remove("opacity-100", "scale-100");
+  shareContent.classList.add("opacity-0", "scale-90");
+  setTimeout(() => {
+    shareModal.classList.add("hidden");
+  }, 300);
+}
+
+function dataURLToFile(dataurl, filename) {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) u8arr[n] = bstr.charCodeAt(n);
+  return new File([u8arr], filename, { type: mime });
+}
+
+async function generateShareImage(q, a) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'share-card bg-white text-gray-800 p-4 rounded-md border w-[350px] md:w-[600px] font-serif space-y-2';
+  const header = document.createElement('div');
+  header.className = 'bg-brand text-white text-center font-semibold py-2 rounded-md';
+  header.textContent = 'GraceGuideAI';
+  const qEl = document.createElement('p');
+  qEl.innerHTML = '<strong>Q:</strong> ' + q;
+  const aEl = document.createElement('p');
+  aEl.innerHTML = '<strong>A:</strong> ' + a;
+  wrapper.appendChild(header);
+  wrapper.appendChild(qEl);
+  wrapper.appendChild(aEl);
+  document.body.appendChild(wrapper);
+  const canvas = await html2canvas(wrapper);
+  wrapper.remove();
+  return canvas.toDataURL('image/png');
+}
+
+let shareFile;
+
+async function shareQA(q, a) {
+  const dataUrl = await generateShareImage(q, a);
+  shareFile = dataURLToFile(dataUrl, 'graceguide.png');
+  sharePreview.src = dataUrl;
+  downloadShare.href = dataUrl;
+  showShareModal();
+}
+
 function renderHistory() {
   const history = JSON.parse(localStorage.getItem("qaHistory") || "[]");
   historyList.innerHTML = "";
@@ -79,7 +146,15 @@ function renderHistory() {
     li.className = "history-item";
     const details = document.createElement("details");
     const summary = document.createElement("summary");
-    summary.textContent = q;
+    summary.className = "flex justify-between items-center";
+    const span = document.createElement("span");
+    span.textContent = q;
+    const shareBtn = document.createElement("button");
+    shareBtn.className = "share-btn ml-2 text-brand";
+    shareBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"/></svg>`;
+    shareBtn.addEventListener("click", e => { e.stopPropagation(); shareQA(q, a); });
+    summary.appendChild(span);
+    summary.appendChild(shareBtn);
     const qa = document.createElement("div");
     qa.className = "qa";
     const qEl = document.createElement("p");
@@ -250,4 +325,31 @@ historyToggles.forEach(btn => {
       closeHistory();
     }
   });
+});
+
+closeShare.addEventListener("click", hideShareModal);
+
+tweetShare.addEventListener("click", async () => {
+  if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+    await navigator.share({ files: [shareFile], text: "GraceGuideAI Q&A" });
+  } else {
+    const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent("GraceGuideAI Q&A");
+    window.open(url, "_blank");
+  }
+});
+
+instaShare.addEventListener("click", async () => {
+  if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+    await navigator.share({ files: [shareFile], text: "GraceGuideAI Q&A" });
+  } else {
+    alert("Your browser does not support direct image sharing. Please download the image and share manually.");
+  }
+});
+
+emailShare.addEventListener("click", async () => {
+  if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+    await navigator.share({ files: [shareFile], title: "GraceGuideAI Q&A" });
+  } else {
+    window.location.href = "mailto:?subject=GraceGuideAI%20Q%26A";
+  }
 });
