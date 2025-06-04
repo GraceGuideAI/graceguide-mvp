@@ -137,15 +137,27 @@ joinNowBtn.addEventListener("click", async () => {
 maybeLaterBtn.addEventListener("click", hideModal);
 
 
+const lgQuery = window.matchMedia("(min-width: 1024px)");
+
 function openHistory() {
   historySidebar.classList.remove("-translate-x-full");
-  qaContainer.classList.add("ml-72");
+  if (lgQuery.matches) {
+    qaContainer.classList.add("ml-72");
+  }
 }
 
 function closeHistory() {
   historySidebar.classList.add("-translate-x-full");
   qaContainer.classList.remove("ml-72");
 }
+
+lgQuery.addEventListener("change", () => {
+  if (!lgQuery.matches) {
+    qaContainer.classList.remove("ml-72");
+  } else if (!historySidebar.classList.contains("-translate-x-full")) {
+    qaContainer.classList.add("ml-72");
+  }
+});
 
 function onClickOutside(e) {
   if (!historySidebar.contains(e.target) &&
