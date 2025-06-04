@@ -21,6 +21,8 @@ themeToggle.addEventListener("click", () => {
 
 const emailModal   = document.getElementById("emailModal");
 const joinNowBtn   = document.getElementById("joinNow");
+const joinLabel = document.getElementById("joinLabel");
+const joinSpinner = document.getElementById("joinSpinner");
 const maybeLaterBtn = document.getElementById("maybeLater");
 const emailInput   = document.getElementById("emailInput");
 const closeModalBtn = document.getElementById("closeModal");
@@ -141,11 +143,14 @@ qBox.addEventListener("keydown", e => {
 });
 
 joinNowBtn.addEventListener("click", async () => {
-  const email = emailInput.value.trim();
-  if (!email) {
-    alert("Please provide an email.");
+
     return;
   }
+
+  joinNowBtn.disabled = true;
+  joinLabel.classList.add("hidden");
+  joinSpinner.classList.remove("hidden");
+
   try {
     const res = await fetch("/subscribe", {
       method: "POST",
@@ -153,10 +158,15 @@ joinNowBtn.addEventListener("click", async () => {
       body: JSON.stringify({ email })
     });
     if (!res.ok) throw new Error(await res.text());
-    localStorage.setItem("subscribed", "true");
+
     hideModal();
   } catch (err) {
+    console.error("Subscription failed", err);
     alert("Subscription failed: " + err.message);
+  } finally {
+    joinSpinner.classList.add("hidden");
+    joinLabel.classList.remove("hidden");
+    joinNowBtn.disabled = false;
   }
 });
 
