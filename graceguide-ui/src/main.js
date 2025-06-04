@@ -36,13 +36,16 @@ function renderHistory() {
   historyList.innerHTML = "";
   history.forEach(({ q, a }) => {
     const li = document.createElement("li");
-    const qEl = document.createElement("p");
-    qEl.className = "font-semibold";
-    qEl.textContent = q;
+    li.className = "history-item";
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+    summary.textContent = q;
     const aEl = document.createElement("p");
+    aEl.className = "mt-2";
     aEl.textContent = a;
-    li.appendChild(qEl);
-    li.appendChild(aEl);
+    details.appendChild(summary);
+    details.appendChild(aEl);
+    li.appendChild(details);
     historyList.appendChild(li);
   });
 }
