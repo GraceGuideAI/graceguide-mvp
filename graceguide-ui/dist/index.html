@@ -67,7 +67,7 @@
         color: white;
       }
     </style>
-    <script type="module" crossorigin src="/static/assets/app-B3bNBFk7.js"></script>
+    <script type="module" crossorigin src="/static/assets/app-DRviw8qP.js"></script>
   </head>
 
   <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -97,9 +97,15 @@
       <!-- Source toggle & Ask button -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2" id="sourceButtons">
-          <button class="src-btn active text-brand border border-brand rounded px-2 py-1 text-xs" data-mode="both">Both</button>
-          <button class="src-btn text-brand border border-brand rounded px-2 py-1 text-xs" data-mode="bible">Bible</button>
-          <button class="src-btn text-brand border border-brand rounded px-2 py-1 text-xs" data-mode="catechism">CCC</button>
+          <input
+            type="range"
+            id="sourceSlider"
+            min="0"
+            max="2"
+            step="1"
+            value="0"
+            class="slider"
+          />
         </div>
         <button
           id="ask"

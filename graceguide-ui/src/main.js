@@ -2,7 +2,7 @@ const askBtn   = document.getElementById("ask");
 const askLabel = document.getElementById("askLabel");
 const spinner  = document.getElementById("spinner");
 const qBox     = document.getElementById("question");
-const srcButtons = document.querySelectorAll(".src-btn");
+const sourceSlider = document.getElementById("sourceSlider");
 const card     = document.getElementById("answerCard");
 const output   = document.getElementById("output");
 const srcList  = document.getElementById("sourceList");
@@ -13,11 +13,10 @@ const maybeLaterBtn = document.getElementById("maybeLater");
 const emailInput   = document.getElementById("emailInput");
 const consentCheckbox = document.getElementById("consentCheckbox");
 
-srcButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    srcButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-  });
+let mode = "both";
+sourceSlider.addEventListener("input", () => {
+  const val = parseInt(sourceSlider.value, 10);
+  mode = val === 0 ? "both" : val === 1 ? "bible" : "catechism";
 });
 
 let askCount = parseInt(localStorage.getItem("askCount") || "0", 10);
@@ -41,8 +40,6 @@ async function ask() {
   spinner.classList.remove("hidden");
   card.classList.add("hidden");
 
-  const activeBtn = document.querySelector(".src-btn.active");
-  const mode = activeBtn ? activeBtn.dataset.mode : "both";
 
   try {
     const res = await fetch("/qa", {
