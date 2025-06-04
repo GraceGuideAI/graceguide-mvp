@@ -88,6 +88,19 @@ Before deploying the API make sure the UI has been built:
 
 The contents of `graceguide-ui/dist/` are what get served in production.
 
+## Metrics
+
+The API records simple user interaction events to `metrics.csv`. You can fetch
+aggregated counts from the authenticated `/metrics` endpoint:
+
+```bash
+curl -u admin:YOUR_ADMIN_PASSWORD http://localhost:8000/metrics
+```
+
+Events are logged via the `/log_event` endpoint which the frontend calls when
+the popup is shown, an email submission succeeds or fails, and when a user
+clicks **Maybe Later**.
+
 ## Feedback log
 
 If you keep notes while using the app, you can write them to `feedback.log`. The file is ignored by Git so your personal feedback stays local.

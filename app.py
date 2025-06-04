@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from enum import Enum
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 import json
 from pathlib import Path
@@ -22,6 +23,7 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain.chains import RetrievalQA
 from templates import prompt_for_mode
+import metrics
 
 # 1) Read API key
 api_key = os.getenv("OPENAI_API_KEY")
@@ -58,6 +60,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+security = HTTPBasic()
+admin_password = os.getenv("ADMIN_PASSWORD")
+
 # 6) Request and response models
 class SourceMode(str, Enum):
     bible = "bible"
@@ -74,6 +79,9 @@ class QAResponse(BaseModel):
 
 class SubscribeRequest(BaseModel):
     email: str
+
+class LogEvent(BaseModel):
+    event: str
 
 # 7) /qa endpoint
 @app.post("/qa", response_model=QAResponse)
@@ -140,7 +148,27 @@ def subscribe(req: SubscribeRequest):
         writer.writerow([req.email])
     return {"status": "ok"}
 
-# 9) (optional) serve your UI if it exists
+# 9) /metrics endpoint with basic auth
+@app.get("/metrics")
+def get_metrics(credentials: HTTPBasicCredentials = Depends(security)):
+    if not admin_password:
+        raise HTTPException(status_code=500, detail="ADMIN_PASSWORD not set")
+    import secrets
+    correct = credentials.username == "admin" and secrets.compare_digest(credentials.password, admin_password)
+    if not correct:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return metrics.get_counts()
+
+# 10) /log_event endpoint to record frontend events
+@app.post("/log_event")
+def log_event(evt: LogEvent):
+    metrics.log_event(evt.event)
+    return {"status": "ok"}
+# 11) (optional) serve your UI if it exists
 ui_path = "graceguide-ui/dist"
 if os.path.isdir(ui_path):
     app.mount("/static", StaticFiles(directory=ui_path, html=False), name="static")

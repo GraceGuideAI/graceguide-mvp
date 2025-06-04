@@ -25,6 +25,16 @@ const maybeLaterBtn = document.getElementById("maybeLater");
 const emailInput   = document.getElementById("emailInput");
 const consentCheckbox = document.getElementById("consentCheckbox");
 
+async function logEvent(event) {
+  try {
+    await fetch("/log_event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event })
+    });
+  } catch (_) {}
+}
+
 let mode = "both";
 sourceSlider.addEventListener("input", () => {
   const val = parseInt(sourceSlider.value, 10);
@@ -36,6 +46,7 @@ if (askCount < 7) sessionStorage.removeItem("modalShown");
 
 function showModal() {
   emailModal.classList.remove("hidden");
+  logEvent("popup_shown");
 }
 
 function hideModal() {
@@ -144,12 +155,17 @@ joinNowBtn.addEventListener("click", async () => {
     });
     if (!res.ok) throw new Error(await res.text());
     hideModal();
+    logEvent("email_success");
   } catch (err) {
     alert("Subscription failed: " + err.message);
+    logEvent("email_error");
   }
 });
 
-maybeLaterBtn.addEventListener("click", hideModal);
+maybeLaterBtn.addEventListener("click", () => {
+  hideModal();
+  logEvent("maybe_later");
+});
 
 
 const lgQuery = window.matchMedia("(min-width: 1024px)");
