@@ -6,6 +6,7 @@ const sourceSlider = document.getElementById("sourceSlider");
 const card     = document.getElementById("answerCard");
 const output   = document.getElementById("output");
 const srcList  = document.getElementById("sourceList");
+const historyList = document.getElementById("historyList");
 
 const emailModal   = document.getElementById("emailModal");
 const joinNowBtn   = document.getElementById("joinNow");
@@ -29,6 +30,24 @@ function showModal() {
 function hideModal() {
   emailModal.classList.add("hidden");
 }
+
+function renderHistory() {
+  const history = JSON.parse(localStorage.getItem("qaHistory") || "[]");
+  historyList.innerHTML = "";
+  history.forEach(({ q, a }) => {
+    const li = document.createElement("li");
+    const qEl = document.createElement("p");
+    qEl.className = "font-semibold";
+    qEl.textContent = q;
+    const aEl = document.createElement("p");
+    aEl.textContent = a;
+    li.appendChild(qEl);
+    li.appendChild(aEl);
+    historyList.appendChild(li);
+  });
+}
+
+renderHistory();
 
 async function ask() {
   const q = qBox.value.trim();
@@ -61,6 +80,13 @@ async function ask() {
     });
 
     card.classList.remove("hidden");
+
+    // Update history sidebar
+    const history = JSON.parse(localStorage.getItem("qaHistory") || "[]");
+    history.unshift({ q, a: answer.trim() });
+    history.splice(10);
+    localStorage.setItem("qaHistory", JSON.stringify(history));
+    renderHistory();
 
     // Track successful questions
     askCount += 1;
