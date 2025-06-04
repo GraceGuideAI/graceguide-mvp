@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -100,7 +100,10 @@ def qa(request: QARequest):
         chain_type_kwargs={"prompt": prompt_for_mode(request.mode.value)},
     )
 
-    res = chain.invoke({"query": request.question})
+    try:
+        res = chain.invoke({"query": request.question})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     raw = res["result"].strip()
 
     if "=== Sources ===" in raw:
