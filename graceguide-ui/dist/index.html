@@ -78,7 +78,7 @@
         background-color: #f3f4f6; /* gray-100 */
       }
     </style>
-    <script type="module" crossorigin src="/static/assets/app-Cl00LYgX.js"></script>
+    <script type="module" crossorigin src="/static/assets/app-irQWHIxm.js"></script>
   </head>
 
   <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -90,18 +90,18 @@
       <p class="mt-2 text-center sm:text-left opacity-90">
         Catholic answers powered by Scripture&nbsp;&amp;&nbsp;Catechism
       </p>
+      <button id="historyToggle" class="mt-4 bg-brand text-white px-3 py-2 rounded-md">
+        Past Answers
+      </button>
     </header>
-
-    <button id="historyToggle" class="self-start m-4 bg-brand text-white px-3 py-2 rounded-md">
-      Past Answers
-    </button>
 
     <!-- ░░░ Main Q&A ░░░ -->
     <main
       class="w-full max-w-4xl mx-auto flex-1 px-4 py-8 flex flex-col lg:flex-row gap-6"
     >
       <aside id="history" class="fixed inset-y-0 left-0 z-30 w-72 bg-white p-4 border border-gray-200 rounded-r-md overflow-y-auto transform -translate-x-full transition-transform">
-        <h2 class="text-lg font-semibold mb-2">Past Answers</h2>
+        <h2 class="text-lg font-semibold">Past Answers</h2>
+        <hr class="my-2 border-gray-200" />
         <ul id="historyList" class="space-y-4 text-sm"></ul>
       </aside>
 

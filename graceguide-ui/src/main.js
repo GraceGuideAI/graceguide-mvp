@@ -135,6 +135,32 @@ joinNowBtn.addEventListener("click", async () => {
 
 maybeLaterBtn.addEventListener("click", hideModal);
 
+function openHistory() {
+  historySidebar.classList.remove("-translate-x-full");
+  document.addEventListener("click", onClickOutside);
+  document.addEventListener("keydown", onEsc);
+}
+
+function closeHistory() {
+  historySidebar.classList.add("-translate-x-full");
+  document.removeEventListener("click", onClickOutside);
+  document.removeEventListener("keydown", onEsc);
+}
+
+function onClickOutside(e) {
+  if (!historySidebar.contains(e.target) && !historyToggle.contains(e.target)) {
+    closeHistory();
+  }
+}
+
+function onEsc(e) {
+  if (e.key === "Escape") closeHistory();
+}
+
 historyToggle.addEventListener("click", () => {
-  historySidebar.classList.toggle("-translate-x-full");
+  if (historySidebar.classList.contains("-translate-x-full")) {
+    openHistory();
+  } else {
+    closeHistory();
+  }
 });
