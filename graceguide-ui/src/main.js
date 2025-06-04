@@ -9,6 +9,7 @@ const srcList  = document.getElementById("sourceList");
 const historyList = document.getElementById("historyList");
 const historyToggles = document.querySelectorAll("#historyToggle");
 const historySidebar = document.getElementById("history");
+const qaContainer = document.getElementById("qaContainer");
 
 const emailModal   = document.getElementById("emailModal");
 const joinNowBtn   = document.getElementById("joinNow");
@@ -138,10 +139,12 @@ maybeLaterBtn.addEventListener("click", hideModal);
 
 function openHistory() {
   historySidebar.classList.remove("-translate-x-full");
+  qaContainer.classList.add("ml-72");
 }
 
 function closeHistory() {
   historySidebar.classList.add("-translate-x-full");
+  qaContainer.classList.remove("ml-72");
 }
 
 function onClickOutside(e) {
