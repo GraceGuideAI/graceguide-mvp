@@ -96,16 +96,13 @@
 
       <!-- Source toggle & Ask button -->
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2" id="sourceButtons">
-          <input
-            type="range"
-            id="sourceSlider"
-            min="0"
-            max="2"
-            step="1"
-            value="0"
-            class="slider"
-          />
+        <div class="flex flex-col items-center gap-2" id="sourceButtons">
+          <input type="range" id="sourceSlider" min="0" max="2" step="1" value="0" class="slider" />
+          <div class="flex justify-between text-xs text-gray-600 w-36">
+            <span>Blend</span>
+            <span>Bible</span>
+            <span>CCC</span>
+          </div>
         </div>
         <button
           id="ask"

@@ -21,6 +21,7 @@ Install frontend dependencies:
 ```bash
 cd graceguide-ui
 npm install
+# Installs Vite and other packages so the build script can run successfully
 ```
 
 ## Environment variables
