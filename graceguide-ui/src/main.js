@@ -21,9 +21,11 @@ themeToggle.addEventListener("click", () => {
 
 const emailModal   = document.getElementById("emailModal");
 const joinNowBtn   = document.getElementById("joinNow");
+const joinLabel = document.getElementById("joinLabel");
+const joinSpinner = document.getElementById("joinSpinner");
 const maybeLaterBtn = document.getElementById("maybeLater");
 const emailInput   = document.getElementById("emailInput");
-const consentCheckbox = document.getElementById("consentCheckbox");
+const closeModalBtn = document.getElementById("closeModal");
 
 async function logEvent(event) {
   try {
@@ -42,15 +44,17 @@ sourceSlider.addEventListener("input", () => {
 });
 
 let askCount = parseInt(localStorage.getItem("askCount") || "0", 10);
-if (askCount < 7) sessionStorage.removeItem("modalShown");
+let maybeLaterUntil = parseInt(localStorage.getItem("maybeLaterUntil") || "0", 10);
+if (askCount < 5 || askCount < maybeLaterUntil) sessionStorage.removeItem("modalShown");
 
 function showModal() {
+  console.log("Showing email modal");
   emailModal.classList.remove("hidden");
-  logEvent("popup_shown");
+
 }
 
 function hideModal() {
-  emailModal.classList.add("hidden");
+
 }
 
 function renderHistory() {
@@ -123,7 +127,13 @@ async function ask() {
     // Track successful questions
     askCount += 1;
     localStorage.setItem("askCount", askCount);
-    if (askCount === 7 && !sessionStorage.getItem("modalShown")) {
+    const subscribed = localStorage.getItem("subscribed");
+    maybeLaterUntil = parseInt(localStorage.getItem("maybeLaterUntil") || "0", 10);
+    const shouldShow = !subscribed &&
+                       askCount >= 5 &&
+                       askCount >= maybeLaterUntil &&
+                       !sessionStorage.getItem("modalShown");
+    if (shouldShow) {
       sessionStorage.setItem("modalShown", "true");
       showModal();
     }
@@ -142,11 +152,14 @@ qBox.addEventListener("keydown", e => {
 });
 
 joinNowBtn.addEventListener("click", async () => {
-  const email = emailInput.value.trim();
-  if (!email || !consentCheckbox.checked) {
-    alert("Please provide an email and consent.");
+
     return;
   }
+
+  joinNowBtn.disabled = true;
+  joinLabel.classList.add("hidden");
+  joinSpinner.classList.remove("hidden");
+
   try {
     const res = await fetch("/subscribe", {
       method: "POST",
@@ -154,18 +167,18 @@ joinNowBtn.addEventListener("click", async () => {
       body: JSON.stringify({ email })
     });
     if (!res.ok) throw new Error(await res.text());
+
     hideModal();
     logEvent("email_success");
   } catch (err) {
+    console.error("Subscription failed", err);
     alert("Subscription failed: " + err.message);
-    logEvent("email_error");
+
   }
 });
 
 maybeLaterBtn.addEventListener("click", () => {
-  hideModal();
-  logEvent("maybe_later");
-});
+
 
 
 const lgQuery = window.matchMedia("(min-width: 1024px)");
