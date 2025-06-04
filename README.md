@@ -24,6 +24,12 @@ npm install
 # Installs Vite and other packages so the build script can run successfully
 ```
 
+Running `npm run build` before installing packages will fail because Vite
+and other dependencies are not yet available. Either install them first as
+shown above or use `npm run build` or the helper script
+`./scripts/build_frontend.sh`; both trigger a `prebuild` step that installs
+the dependencies automatically.
+
 ## Environment variables
 
 Set your OpenAI key so both the database script and the API can embed and query text:
