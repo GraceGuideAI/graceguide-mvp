@@ -25,10 +25,10 @@ npm install
 ```
 
 Running `npm run build` before installing packages will fail because Vite
-and other dependencies are not yet available. Either install them first as
-shown above or use `npm run build` or the helper script
-`./scripts/build_frontend.sh`; both trigger a `prebuild` step that installs
-the dependencies automatically.
+and other dependencies are not yet available. Either run `npm install`
+first or use `npm run build` or the helper script `./scripts/build_frontend.sh`.
+Both commands trigger a `prebuild` step that runs `npm ci`, automatically
+installing any missing packages.
 
 ## Environment variables
 
@@ -75,6 +75,9 @@ To build the static frontend with Vite use the provided script:
 ```bash
 ./scripts/build_frontend.sh
 ```
+
+You can also run `npm run build` directly. The `prebuild` step will install
+dependencies automatically if they're missing.
 
 The output appears in `graceguide-ui/dist/`. When the API is running these files are served as the root website so you can navigate to `http://localhost:8000/` to use the app.
 
