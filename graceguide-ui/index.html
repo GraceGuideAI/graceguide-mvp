@@ -82,15 +82,23 @@
 
   <body class="bg-gray-50 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
     <!-- ░░░ Header ░░░ -->
-    <header class="bg-brand text-white px-4 py-6">
-      <h1 class="text-2xl sm:text-3xl font-semibold text-center">
-        GraceGuideAI&nbsp;<span class="font-light">Beta</span>
-      </h1>
-      <p class="mt-2 text-center opacity-90">
-        Catholic answers powered by Scripture&nbsp;&amp;&nbsp;Catechism
-      </p>
-    </header>
 
+<header>
+  <div class="flex flex-col sm:flex-row items-center justify-between bg-gradient-to-r from-blue-900 to-blue-600 text-white shadow-lg px-4 py-4">
+    <div class="flex flex-col sm:flex-row items-center">
+      <div class="flex items-center space-x-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#FFD700]" fill="currentColor" viewBox="0 0 24 24"><path d="M10 2v6H4v8h6v6h4v-6h6V8h-6V2z"/></svg>
+        <h1 class="text-2xl font-semibold">GraceGuideAI</h1>
+      </div>
+      <p class="text-sm sm:text-base text-[#FFD700] sm:ml-4">Catholic answers powered by Scripture &amp; Catechism</p>
+    </div>
+<button id="themeToggle" class="bg-white/20 hover:bg-white/30 rounded p-2" aria-label="Toggle dark mode">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M17.293 13.293A8 8 0 0110.707 2.707a8 8 0 106.586 10.586z" />
+  </svg>
+</button>
+  </div>
+</header>
     <button
       id="historyToggle"
       class="fixed top-2 left-2 z-40 p-2 bg-brand text-white rounded-md"
@@ -110,20 +118,6 @@
       </svg>
     </button>
 
-    <button
-      id="themeToggle"
-      class="fixed top-2 right-2 z-40 p-2 bg-brand text-white rounded-md"
-      aria-label="Toggle dark mode"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-      >
-        <path d="M17.293 13.293A8 8 0 0110.707 2.707a8 8 0 106.586 10.586z" />
-      </svg>
-    </button>
 
     <!-- ░░░ Main Q&A ░░░ -->
     <main
