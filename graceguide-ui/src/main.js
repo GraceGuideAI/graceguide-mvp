@@ -36,14 +36,14 @@ let maybeLaterUntil = parseInt(localStorage.getItem("maybeLaterUntil") || "0", 1
 if (askCount < 5 || askCount < maybeLaterUntil) sessionStorage.removeItem("modalShown");
 
 function showModal() {
+  console.log("Showing email modal");
   emailModal.classList.remove("hidden");
   requestAnimationFrame(() => emailModal.classList.remove("opacity-0"));
   emailInput.focus();
 }
 
 function hideModal() {
-  emailModal.classList.add("opacity-0");
-  emailModal.addEventListener("transitionend", () => emailModal.classList.add("hidden"), { once: true });
+
 }
 
 function renderHistory() {
@@ -165,7 +165,7 @@ maybeLaterBtn.addEventListener("click", () => {
   localStorage.setItem("maybeLaterUntil", maybeLaterUntil);
   hideModal();
 });
-closeModalBtn.addEventListener("click", hideModal);
+
 
 
 const lgQuery = window.matchMedia("(min-width: 1024px)");
