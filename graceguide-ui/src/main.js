@@ -23,7 +23,7 @@ const emailModal   = document.getElementById("emailModal");
 const joinNowBtn   = document.getElementById("joinNow");
 const maybeLaterBtn = document.getElementById("maybeLater");
 const emailInput   = document.getElementById("emailInput");
-const consentCheckbox = document.getElementById("consentCheckbox");
+const closeModalBtn = document.getElementById("closeModal");
 
 let mode = "both";
 sourceSlider.addEventListener("input", () => {
@@ -36,10 +36,13 @@ if (askCount < 7) sessionStorage.removeItem("modalShown");
 
 function showModal() {
   emailModal.classList.remove("hidden");
+  requestAnimationFrame(() => emailModal.classList.remove("opacity-0"));
+  emailInput.focus();
 }
 
 function hideModal() {
-  emailModal.classList.add("hidden");
+  emailModal.classList.add("opacity-0");
+  emailModal.addEventListener("transitionend", () => emailModal.classList.add("hidden"), { once: true });
 }
 
 function renderHistory() {
@@ -132,8 +135,8 @@ qBox.addEventListener("keydown", e => {
 
 joinNowBtn.addEventListener("click", async () => {
   const email = emailInput.value.trim();
-  if (!email || !consentCheckbox.checked) {
-    alert("Please provide an email and consent.");
+  if (!email) {
+    alert("Please provide an email.");
     return;
   }
   try {
@@ -150,6 +153,7 @@ joinNowBtn.addEventListener("click", async () => {
 });
 
 maybeLaterBtn.addEventListener("click", hideModal);
+closeModalBtn.addEventListener("click", hideModal);
 
 
 const lgQuery = window.matchMedia("(min-width: 1024px)");
