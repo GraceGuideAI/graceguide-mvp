@@ -27,6 +27,16 @@ const maybeLaterBtn = document.getElementById("maybeLater");
 const emailInput   = document.getElementById("emailInput");
 const closeModalBtn = document.getElementById("closeModal");
 
+async function logEvent(event) {
+  try {
+    await fetch("/log_event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event })
+    });
+  } catch (_) {}
+}
+
 let mode = "both";
 sourceSlider.addEventListener("input", () => {
   const val = parseInt(sourceSlider.value, 10);
@@ -40,8 +50,7 @@ if (askCount < 5 || askCount < maybeLaterUntil) sessionStorage.removeItem("modal
 function showModal() {
   console.log("Showing email modal");
   emailModal.classList.remove("hidden");
-  requestAnimationFrame(() => emailModal.classList.remove("opacity-0"));
-  emailInput.focus();
+
 }
 
 function hideModal() {
@@ -160,21 +169,15 @@ joinNowBtn.addEventListener("click", async () => {
     if (!res.ok) throw new Error(await res.text());
 
     hideModal();
+    logEvent("email_success");
   } catch (err) {
     console.error("Subscription failed", err);
     alert("Subscription failed: " + err.message);
-  } finally {
-    joinSpinner.classList.add("hidden");
-    joinLabel.classList.remove("hidden");
-    joinNowBtn.disabled = false;
+
   }
 });
 
 maybeLaterBtn.addEventListener("click", () => {
-  maybeLaterUntil = askCount + 10;
-  localStorage.setItem("maybeLaterUntil", maybeLaterUntil);
-  hideModal();
-});
 
 
 
