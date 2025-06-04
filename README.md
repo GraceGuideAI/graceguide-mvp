@@ -51,21 +51,22 @@ This creates the `veritas_ai_chroma_db/` directory used by the API.
 
 ## Starting the FastAPI server
 
-After the database exists you can start the server:
+After the database exists you can start the server. Ensure the UI is built first
+using the helper script:
 
 ```bash
+./scripts/build_frontend.sh
 uvicorn app:app --reload --port 8000
 ```
 
-The UI in `graceguide-ui/dist` will be served automatically if it has been built.
+The UI in `graceguide-ui/dist` will be served automatically once built.
 
 ## Building the frontend
 
-To build the static frontend with Vite:
+To build the static frontend with Vite use the provided script:
 
 ```bash
-cd graceguide-ui
-npm run build
+./scripts/build_frontend.sh
 ```
 
 The output appears in `graceguide-ui/dist/`. When the API is running these files are served as the root website so you can navigate to `http://localhost:8000/` to use the app.
@@ -75,8 +76,7 @@ The output appears in `graceguide-ui/dist/`. When the API is running these files
 Before deploying the API make sure the UI has been built:
 
 ```bash
-cd graceguide-ui
-npm run build
+./scripts/build_frontend.sh
 ```
 
 The contents of `graceguide-ui/dist/` are what get served in production.
