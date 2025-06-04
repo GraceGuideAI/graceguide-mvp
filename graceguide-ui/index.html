@@ -19,7 +19,7 @@
     <!-- ❷ Dark‑mode + brand colour (Marian blue) -->
     <script>
       tailwind.config = {
-        darkMode: "media",
+        darkMode: "class",
         theme: {
           extend: { colors: { brand: "#0054a6" } }
         }
@@ -80,7 +80,7 @@
     </style>
   </head>
 
-  <body class="bg-gray-50 min-h-screen flex flex-col">
+  <body class="bg-gray-50 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
     <!-- ░░░ Header ░░░ -->
     <header class="bg-brand text-white px-4 py-6">
       <h1 class="text-2xl sm:text-3xl font-semibold text-center">
@@ -110,11 +110,26 @@
       </svg>
     </button>
 
+    <button
+      id="themeToggle"
+      class="fixed top-2 right-2 z-40 p-2 bg-brand text-white rounded-md"
+      aria-label="Toggle dark mode"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path d="M17.293 13.293A8 8 0 0110.707 2.707a8 8 0 106.586 10.586z" />
+      </svg>
+    </button>
+
     <!-- ░░░ Main Q&A ░░░ -->
     <main
       class="w-full max-w-4xl mx-auto flex-1 px-4 py-8 flex flex-col lg:flex-row gap-6"
     >
-      <aside id="history" class="fixed inset-y-0 left-0 z-30 w-72 bg-white/80 lg:bg-white/90 p-4 pt-12 border border-gray-200 rounded-r-md overflow-y-auto transform -translate-x-full transition-transform">
+      <aside id="history" class="fixed inset-y-0 left-0 z-30 w-72 bg-white/80 lg:bg-white/90 dark:bg-gray-800 p-4 pt-12 border border-gray-200 dark:border-gray-600 rounded-r-md overflow-y-auto transform -translate-x-full transition-transform dark:text-gray-100">
         <h2 class="text-lg font-semibold mb-2">Past Answers</h2>
         <ul id="historyList" class="space-y-4 text-sm"></ul>
       </aside>
@@ -171,18 +186,18 @@
         <h2 class="text-lg font-semibold">Answer</h2>
         <pre
           id="output"
-          class="whitespace-pre-wrap bg-white p-4 rounded-md border border-gray-200 text-gray-800"
+          class="whitespace-pre-wrap bg-white dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-100"
         ></pre>
         <h3 class="text-md font-semibold">Sources</h3>
         <ul
           id="sourceList"
-          class="list-disc pl-6 space-y-1 text-gray-700"
+          class="list-disc pl-6 space-y-1 text-gray-700 dark:text-gray-100"
         ></ul>
       </section>
       </div>
     </main>
 
-    <footer class="text-center text-xs text-gray-500 py-4">
+    <footer class="text-center text-xs text-gray-500 dark:text-gray-400 py-4">
       © 2025 GraceGuideAI · Beta preview
     </footer>
 
@@ -191,15 +206,15 @@
       id="emailModal"
       class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
     >
-      <div class="bg-white p-6 rounded-md space-y-4 w-80">
-        <p class="text-gray-700">Get weekly answers by email</p>
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-md space-y-4 w-80">
+        <p class="text-gray-700 dark:text-gray-100">Get weekly answers by email</p>
         <input
           id="emailInput"
           type="email"
           placeholder="Email address"
-          class="w-full border p-2 rounded-md"
+          class="w-full border p-2 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
         />
-        <label class="flex items-center text-sm text-gray-600">
+        <label class="flex items-center text-sm text-gray-600 dark:text-gray-100">
           <input id="consentCheckbox" type="checkbox" class="mr-2" />
           I consent to receive updates
         </label>
