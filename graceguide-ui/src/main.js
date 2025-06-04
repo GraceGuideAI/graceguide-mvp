@@ -7,7 +7,7 @@ const card     = document.getElementById("answerCard");
 const output   = document.getElementById("output");
 const srcList  = document.getElementById("sourceList");
 const historyList = document.getElementById("historyList");
-const historyToggle = document.getElementById("historyToggle");
+const historyToggles = document.querySelectorAll("#historyToggle");
 const historySidebar = document.getElementById("history");
 
 const emailModal   = document.getElementById("emailModal");
@@ -135,6 +135,8 @@ joinNowBtn.addEventListener("click", async () => {
 
 maybeLaterBtn.addEventListener("click", hideModal);
 
-historyToggle.addEventListener("click", () => {
-  historySidebar.classList.toggle("-translate-x-full");
+historyToggles.forEach(btn => {
+  btn.addEventListener("click", () => {
+    historySidebar.classList.toggle("-translate-x-full");
+  });
 });
