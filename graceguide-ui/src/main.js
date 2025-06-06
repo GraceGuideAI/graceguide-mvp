@@ -36,6 +36,16 @@ const instaShare = document.getElementById("instaShare");
 const emailShare = document.getElementById("emailShare");
 const closeShare = document.getElementById("closeShare");
 
+// Car image generator inputs
+const carYear   = document.getElementById("carYear");
+const carMake   = document.getElementById("carMake");
+const carModel  = document.getElementById("carModel");
+const carTrim   = document.getElementById("carTrim");
+const carColor  = document.getElementById("carColor");
+const carWheels = document.getElementById("carWheels");
+const generateImageBtn = document.getElementById("generateImage");
+const imageResult = document.getElementById("imageResult");
+
 async function logEvent(event) {
   try {
     await fetch("/log_event", {
@@ -352,4 +362,21 @@ emailShare.addEventListener("click", async () => {
   } else {
     window.location.href = "mailto:?subject=GraceGuideAI%20Q%26A";
   }
+});
+
+generateImageBtn.addEventListener("click", () => {
+  const year = carYear.value.trim();
+  const make = carMake.value.trim();
+  const model = carModel.value.trim();
+  const trim = carTrim.value.trim();
+  const color = carColor.value.trim();
+  const wheels = carWheels.value.trim();
+  const prompt = `Render a full side-profile of a ${year} Porsche ${make} ${model} ${trim} painted in ${color} with ${wheels} wheels. Place the car perfectly centered on a pure white background, no text, no logos, no watermarks, no other objects. Apply this visual style: 3-D cute cartoon illustration, isometric yet true side-profile, rounded shapes, thin dark linework, soft pastel base colors with vivid accents, subtle top-left lighting, smooth matte surfaces, playful simplified 3-D vibe`;
+  const url = "https://image.pollinations.ai/prompt/" + encodeURIComponent(prompt);
+  imageResult.innerHTML = "";
+  const img = document.createElement("img");
+  img.alt = "Generated car";
+  img.className = "max-w-full";
+  img.src = url;
+  imageResult.appendChild(img);
 });
