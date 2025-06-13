@@ -118,19 +118,34 @@ function dataURLToFile(dataurl, filename) {
 
 async function generateShareImage(q, a) {
   const wrapper = document.createElement('div');
-  wrapper.className = 'share-card bg-white text-gray-800 p-4 rounded-md border w-[350px] md:w-[600px] font-serif space-y-2';
+  wrapper.className =
+    'share-card flex flex-col justify-between text-white rounded-lg overflow-hidden bg-gradient-to-br from-blue-900 to-blue-600 p-8 font-serif';
+  wrapper.style.width = '540px';
+  wrapper.style.height = '960px';
+
   const header = document.createElement('div');
-  header.className = 'bg-brand text-white text-center font-semibold py-2 rounded-md';
+  header.className = 'text-3xl font-bold text-center mb-4';
   header.textContent = 'GraceGuideAI';
+
+  const qaWrap = document.createElement('div');
+  qaWrap.className = 'flex-1 flex flex-col justify-center gap-4 text-xl';
   const qEl = document.createElement('p');
-  qEl.innerHTML = '<strong>Q:</strong> ' + q;
+  qEl.innerHTML = '<span class="font-semibold">Q:</span> ' + q;
   const aEl = document.createElement('p');
-  aEl.innerHTML = '<strong>A:</strong> ' + a;
+  aEl.innerHTML = '<span class="font-semibold">A:</span> ' + a;
+  qaWrap.appendChild(qEl);
+  qaWrap.appendChild(aEl);
+
+  const footer = document.createElement('div');
+  footer.className = 'text-center text-sm opacity-80 mt-4';
+  footer.textContent = 'graceguide.ai';
+
   wrapper.appendChild(header);
-  wrapper.appendChild(qEl);
-  wrapper.appendChild(aEl);
+  wrapper.appendChild(qaWrap);
+  wrapper.appendChild(footer);
+
   document.body.appendChild(wrapper);
-  const canvas = await html2canvas(wrapper);
+  const canvas = await html2canvas(wrapper, { scale: 2 });
   wrapper.remove();
   return canvas.toDataURL('image/png');
 }
