@@ -31,10 +31,17 @@ const shareModal   = document.getElementById("shareModal");
 const shareContent = document.getElementById("shareContent");
 const sharePreview = document.getElementById("sharePreview");
 const downloadShare = document.getElementById("downloadShare");
-const tweetShare = document.getElementById("tweetShare");
+const downloadLabel = document.getElementById("downloadLabel");
+const xShare = document.getElementById("xShare");
 const instaShare = document.getElementById("instaShare");
 const emailShare = document.getElementById("emailShare");
 const closeShare = document.getElementById("closeShare");
+
+if (/Mobi/i.test(navigator.userAgent)) {
+  downloadLabel.textContent = "Save to Photos";
+} else {
+  downloadLabel.textContent = "Save Image";
+}
 
 async function logEvent(event) {
   try {
@@ -330,11 +337,11 @@ historyToggles.forEach(btn => {
 
 closeShare.addEventListener("click", hideShareModal);
 
-tweetShare.addEventListener("click", async () => {
+xShare.addEventListener("click", async () => {
   if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
     await navigator.share({ files: [shareFile], text: "GraceGuideAI Q&A" });
   } else {
-    const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent("GraceGuideAI Q&A");
+    const url = "https://x.com/intent/tweet?text=" + encodeURIComponent("GraceGuideAI Q&A");
     window.open(url, "_blank");
   }
 });
