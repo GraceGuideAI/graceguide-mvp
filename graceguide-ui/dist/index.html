@@ -117,7 +117,7 @@
         opacity: 1;
       }
     </style>
-    <script type="module" crossorigin src="/static/assets/app-C-1wQ9tq.js"></script>
+    <script type="module" crossorigin src="/static/assets/app-BLEYFQgu.js"></script>
   </head>
 
   <body class="bg-gray-50 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
@@ -270,11 +270,23 @@
     <div id="shareModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
       <div id="shareContent" class="opacity-0 scale-90 transform transition-all duration-300 bg-white dark:bg-gray-800 rounded-md shadow-lg w-11/12 max-w-lg p-4 space-y-4" role="dialog" aria-labelledby="shareTitle" aria-modal="true">
         <img id="sharePreview" class="w-full rounded" alt="Share preview" />
-        <div class="flex justify-end gap-2">
-          <a id="downloadShare" class="bg-brand text-white px-3 py-2 rounded-md" download="graceguide.png">Save</a>
-          <button id="tweetShare" class="bg-sky-500 text-white px-3 py-2 rounded-md">Tweet</button>
-          <button id="instaShare" class="bg-pink-500 text-white px-3 py-2 rounded-md">Instagram</button>
-          <button id="emailShare" class="bg-gray-600 text-white px-3 py-2 rounded-md">Email</button>
+        <div class="flex flex-wrap justify-center gap-2">
+          <a id="downloadShare" class="share-action flex items-center gap-1 bg-brand text-white px-3 py-2 rounded-md" download="graceguide.png">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4"><path d="M12 16V4m0 12l-3-3m3 3l3-3M4 20h16"/></svg>
+            <span id="downloadLabel">Save Image</span>
+          </a>
+          <button id="xShare" class="share-action flex items-center gap-1 bg-black text-white px-3 py-2 rounded-md">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4"><path d="M4 4l16 16M20 4L4 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>Share to X</span>
+          </button>
+          <button id="instaShare" class="share-action flex items-center gap-1 bg-gradient-to-r from-yellow-400 via-red-500 to-purple-600 text-white px-3 py-2 rounded-md">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm5 5a5 5 0 100 10 5 5 0 000-10zm6.5-.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/></svg>
+            <span>Instagram</span>
+          </button>
+          <button id="emailShare" class="share-action flex items-center gap-1 bg-gray-600 text-white px-3 py-2 rounded-md">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4"><path d="M2.25 4.5h19.5v15H2.25v-15z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M2.25 4.5l9.75 7.5 9.75-7.5" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            <span>Email</span>
+          </button>
           <button id="closeShare" class="text-brand underline">Close</button>
         </div>
       </div>
