@@ -361,3 +361,13 @@ emailShare.addEventListener("click", async () => {
     window.location.href = "mailto:?subject=GraceGuideAI%20Q%26A";
   }
 });
+
+downloadShare.addEventListener("click", async e => {
+  if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+    e.preventDefault();
+    downloadShare.removeAttribute("download");
+    try {
+      await navigator.share({ files: [shareFile] });
+    } catch (_) {}
+  }
+});
