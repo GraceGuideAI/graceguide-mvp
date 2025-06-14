@@ -118,6 +118,16 @@ Events are logged via the `/log_event` endpoint which the frontend calls when
 the popup is shown, an email submission succeeds or fails, and when a user
 clicks **Maybe Later**.
 
+## Running tests
+
+Python backend tests use pytest, and the UI uses Vitest. From the repo root run:
+
+```bash
+pytest
+cd graceguide-ui && npm test
+```
+
+
 ## Feedback log
 
 If you keep notes while using the app, you can write them to `feedback.log`. The file is ignored by Git so your personal feedback stays local.

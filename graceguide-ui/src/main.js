@@ -395,3 +395,5 @@ downloadShare.addEventListener("click", async e => {
     } catch (_) {}
   }
 });
+
+export { showModal, hideModal, showShareModal, hideShareModal };

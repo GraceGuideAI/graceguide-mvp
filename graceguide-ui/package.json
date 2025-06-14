@@ -7,9 +7,13 @@
     "dev": "vite",
     "prebuild": "npm ci",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "devDependencies": {
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^1.5.0",
+    "@testing-library/dom": "^9.3.0",
+    "jsdom": "^24.0.0"
   }
 }
