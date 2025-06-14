@@ -125,10 +125,21 @@ async function generateShareImage(q, a) {
 
   const qaWrap = document.createElement('div');
   qaWrap.className = 'flex-1 flex flex-col justify-center gap-4 text-xl';
+
   const qEl = document.createElement('p');
-  qEl.innerHTML = '<span class="font-semibold">Q:</span> ' + q;
+  const qLabel = document.createElement('span');
+  qLabel.className = 'font-semibold';
+  qLabel.textContent = 'Q:';
+  qEl.appendChild(qLabel);
+  qEl.appendChild(document.createTextNode(' ' + q));
+
   const aEl = document.createElement('p');
-  aEl.innerHTML = '<span class="font-semibold">A:</span> ' + a;
+  const aLabel = document.createElement('span');
+  aLabel.className = 'font-semibold';
+  aLabel.textContent = 'A:';
+  aEl.appendChild(aLabel);
+  aEl.appendChild(document.createTextNode(' ' + a));
+
   qaWrap.appendChild(qEl);
   qaWrap.appendChild(aEl);
 
