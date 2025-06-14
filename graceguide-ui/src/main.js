@@ -37,11 +37,7 @@ const instaShare = document.getElementById("instaShare");
 const emailShare = document.getElementById("emailShare");
 const closeShare = document.getElementById("closeShare");
 
-if (/Mobi/i.test(navigator.userAgent)) {
-  downloadLabel.textContent = "Save to Photos";
-} else {
-  downloadLabel.textContent = "Save Image";
-}
+downloadLabel.textContent = "Download";
 
 async function logEvent(event) {
   try {
@@ -380,7 +376,6 @@ emailShare.addEventListener("click", async () => {
 downloadShare.addEventListener("click", async e => {
   if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
     e.preventDefault();
-    downloadShare.removeAttribute("download");
     try {
       await navigator.share({ files: [shareFile] });
     } catch (_) {}
