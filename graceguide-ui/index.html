@@ -141,6 +141,7 @@
 </button>
   </div>
 </header>
+    <div id="litBanner" class="hidden bg-yellow-100 text-brand text-center py-2 cursor-pointer"></div>
     <button
       id="historyToggle"
       class="fixed top-2 left-2 z-40 p-2 bg-brand text-white rounded-md"
@@ -265,6 +266,14 @@
           </button>
       <button id="maybeLater" class="text-brand underline">Maybe Later</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Liturgical day modal -->
+    <div id="litModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
+      <div id="litContent" class="bg-white dark:bg-gray-800 rounded-md p-6 relative">
+        <button id="litClose" class="absolute top-2 right-2 text-xl" aria-label="Close">&times;</button>
+        <pre id="litBody" class="whitespace-pre-wrap"></pre>
       </div>
     </div>
 

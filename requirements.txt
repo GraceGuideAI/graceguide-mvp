@@ -8,3 +8,5 @@ tiktoken
 langchain-openai
 langchain-chroma
 requests
+
+httpx[http2]==0.27.0

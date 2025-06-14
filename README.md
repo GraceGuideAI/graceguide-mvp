@@ -118,6 +118,18 @@ Events are logged via the `/log_event` endpoint which the frontend calls when
 the popup is shown, an email submission succeeds or fails, and when a user
 clicks **Maybe Later**.
 
+## Liturgical day
+
+An additional `/liturgical-day` endpoint returns basic information about the
+current or supplied date in the Roman calendar. Use a `date` query parameter in
+`YYYY-MM-DD` format to fetch other days:
+
+```bash
+curl http://localhost:8000/liturgical-day?date=2025-06-15
+```
+
+Responses are cached server-side for 24 hours.
+
 ## Feedback log
 
 If you keep notes while using the app, you can write them to `feedback.log`. The file is ignored by Git so your personal feedback stays local.
