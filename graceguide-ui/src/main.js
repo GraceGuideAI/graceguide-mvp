@@ -119,16 +119,12 @@ function dataURLToFile(dataurl, filename) {
 async function generateShareImage(q, a) {
   const wrapper = document.createElement('div');
   wrapper.className =
-    'share-card flex flex-col justify-between text-white rounded-lg overflow-hidden bg-gradient-to-br from-blue-900 to-blue-600 p-8 font-serif';
+    'share-card flex flex-col justify-between text-white rounded-lg overflow-hidden bg-gradient-to-br from-blue-900 to-blue-600 p-4 font-serif';
   wrapper.style.width = '540px';
   wrapper.style.height = '960px';
 
-  const header = document.createElement('div');
-  header.className = 'text-3xl font-bold text-center mb-4';
-  header.textContent = 'GraceGuideAI';
-
   const qaWrap = document.createElement('div');
-  qaWrap.className = 'flex-1 flex flex-col justify-center gap-4 text-xl';
+  qaWrap.className = 'flex-1 flex flex-col justify-center gap-2 text-lg leading-tight overflow-hidden break-words';
   const qEl = document.createElement('p');
   qEl.innerHTML = '<span class="font-semibold">Q:</span> ' + q;
   const aEl = document.createElement('p');
@@ -137,10 +133,9 @@ async function generateShareImage(q, a) {
   qaWrap.appendChild(aEl);
 
   const footer = document.createElement('div');
-  footer.className = 'text-center text-sm opacity-80 mt-4';
+  footer.className = 'text-center text-sm opacity-80 mt-2';
   footer.textContent = 'graceguide.ai';
 
-  wrapper.appendChild(header);
   wrapper.appendChild(qaWrap);
   wrapper.appendChild(footer);
 
