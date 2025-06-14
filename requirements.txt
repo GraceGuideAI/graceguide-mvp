@@ -1,3 +1,4 @@
+<<<<<<< codex/specify-explicit-versions-in-requirements.txt
 fastapi==0.110.0
 uvicorn[standard]==0.29.0
 langchain==0.1.17
@@ -8,3 +9,17 @@ tiktoken==0.5.1
 langchain-openai==0.0.4
 langchain-chroma==0.0.7
 requests==2.31.0
+=======
+fastapi
+uvicorn[standard]
+langchain
+langchain-community
+chromadb
+openai
+tiktoken
+langchain-openai
+langchain-chroma
+requests
+
+httpx[http2]==0.27.0
+>>>>>>> main
