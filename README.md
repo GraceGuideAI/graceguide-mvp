@@ -92,6 +92,19 @@ Before deploying the API make sure the UI has been built:
 
 The contents of `graceguide-ui/dist/` are what get served in production.
 
+## Testing share image generation
+
+After building the frontend you can verify the `generateShareImage()` helper
+using a small Node script. Install the Node dependencies once and run:
+
+```bash
+npm install
+node scripts/test_share_image.js
+```
+
+The script launches Puppeteer, loads the built `index.html` file and checks that
+the returned PNG is 540×960 pixels.
+
 ## Metrics
 
 The API records simple user interaction events to `metrics.csv`. You can fetch
