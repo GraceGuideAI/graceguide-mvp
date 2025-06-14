@@ -118,6 +118,7 @@ async function generateShareImage(q, a) {
     'share-card flex flex-col justify-between text-white rounded-lg overflow-hidden bg-gradient-to-br from-blue-900 to-blue-600 p-8 font-serif';
   wrapper.style.width = '540px';
   wrapper.style.height = '960px';
+  wrapper.style.cssText += 'position:fixed; left:-9999px; top:0; opacity:0;';
 
   const header = document.createElement('div');
   header.className = 'text-3xl font-bold text-center mb-4';
