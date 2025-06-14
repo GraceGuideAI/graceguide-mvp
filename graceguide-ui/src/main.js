@@ -1,3 +1,4 @@
+<<<<<< codex/split-src/main.js-into-modules
 import {
   askBtn,
   askLabel,
@@ -24,6 +25,80 @@ import { renderHistory, saveHistory, initHistory } from './history.js';
 
 let mode = 'both';
 sourceSlider.addEventListener('input', () => {
+=======
+const askBtn   = document.getElementById("ask");
+const askLabel = document.getElementById("askLabel");
+const spinner  = document.getElementById("spinner");
+const qBox     = document.getElementById("question");
+const sourceSlider = document.getElementById("sourceSlider");
+const card     = document.getElementById("answerCard");
+const output   = document.getElementById("output");
+const srcList  = document.getElementById("sourceList");
+const historyList = document.getElementById("historyList");
+const historyToggles = document.querySelectorAll("#historyToggle");
+const historySidebar = document.getElementById("history");
+const qaContainer = document.getElementById("qaContainer");
+const themeToggle = document.getElementById("themeToggle");
+
+const root = document.documentElement;
+if (localStorage.theme === "dark") root.classList.add("dark");
+themeToggle.addEventListener("click", () => {
+  const enabled = root.classList.toggle("dark");
+  localStorage.theme = enabled ? "dark" : "light";
+});
+
+const emailModal   = document.getElementById("emailModal");
+const joinNowBtn   = document.getElementById("joinNow");
+const joinLabel = document.getElementById("joinLabel");
+const joinSpinner = document.getElementById("joinSpinner");
+const maybeLaterBtn = document.getElementById("maybeLater");
+const emailInput   = document.getElementById("emailInput");
+const closeModalBtn = document.getElementById("closeModal");
+const modalContent = document.getElementById("modalContent");
+const shareModal   = document.getElementById("shareModal");
+const shareContent = document.getElementById("shareContent");
+const sharePreview = document.getElementById("sharePreview");
+const downloadShare = document.getElementById("downloadShare");
+const downloadLabel = document.getElementById("downloadLabel");
+const xShare = document.getElementById("xShare");
+const instaShare = document.getElementById("instaShare");
+const emailShare = document.getElementById("emailShare");
+const closeShare = document.getElementById("closeShare");
+
+import { fetchLiturgicalDay } from "./liturgical.js";
+
+const litBanner = document.getElementById("litBanner");
+const litModal = document.getElementById("litModal");
+const litContent = document.getElementById("litContent");
+const litBody = document.getElementById("litBody");
+const litClose = document.getElementById("litClose");
+
+litBanner.addEventListener("click", () => {
+  litModal.classList.remove("hidden");
+  requestAnimationFrame(() => litModal.classList.add("opacity-100"));
+});
+
+litClose.addEventListener("click", () => {
+  litModal.classList.remove("opacity-100");
+  setTimeout(() => litModal.classList.add("hidden"), 300);
+});
+
+downloadLabel.textContent = "Download";
+
+async function logEvent(event) {
+  try {
+    await fetch("/log_event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event })
+    });
+  } catch (_) {}
+}
+
+
+let mode = "both";
+sourceSlider.addEventListener("input", () => {
+>>>>>> main
   const val = parseInt(sourceSlider.value, 10);
   mode = val === 0 ? 'both' : val === 1 ? 'bible' : 'catechism';
 });
@@ -42,9 +117,17 @@ async function ask() {
   if (!q) return;
 
   askBtn.disabled = true;
+<<<<<< codex/split-src/main.js-into-modules
   askLabel.classList.add('hidden');
   spinner.classList.remove('hidden');
   card.classList.add('hidden');
+=======
+  askLabel.classList.add("hidden");
+  spinner.classList.remove("hidden");
+  card.classList.add("hidden");
+  litBanner.classList.add("hidden");
+
+>>>>>> main
 
   try {
     const { answer, sources } = await fetchQA(q, mode);
@@ -80,6 +163,7 @@ async function ask() {
     spinner.classList.add('hidden');
     askLabel.classList.remove('hidden');
     askBtn.disabled = false;
+    litBanner.classList.remove("hidden");
   }
 }
 
@@ -132,3 +216,5 @@ closeModalBtn.addEventListener('click', () => {
   hideModal();
   logEvent('modal_close');
 });
+
+fetchLiturgicalDay();
