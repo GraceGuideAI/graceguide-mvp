@@ -1,4 +1,4 @@
-<<<<<< codex/specify-explicit-versions-in-requirements.txt
+<<<<<<< codex/specify-explicit-versions-in-requirements.txt
 fastapi==0.110.0
 uvicorn[standard]==0.29.0
 langchain==0.1.17
@@ -19,11 +19,7 @@ openai
 tiktoken
 langchain-openai
 langchain-chroma
-<<<<<< codex/replace-requests-with-httpx.asyncclient
-httpx
-=======
 requests
 
 httpx[http2]==0.27.0
->>>>>> main
->>>>>> main
+>>>>>>> main

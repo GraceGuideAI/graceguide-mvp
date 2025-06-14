@@ -7,10 +7,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 import json
 from pathlib import Path
-<<<<<< codex/replace-requests-with-httpx.asyncclient
-=======
 from datetime import datetime, timedelta, date
->>>>>> main
 import httpx
 
 # Cache file setup
@@ -148,9 +145,10 @@ def qa(request: QARequest):
 
 # 8) /subscribe endpoint to capture emails
 @app.post("/subscribe")
-async def subscribe(req: SubscribeRequest):
+def subscribe(req: SubscribeRequest):
     import csv
     import hashlib
+    import requests
 
     email = req.email.strip().lower()
     csv_fname = "subscribers.csv"
@@ -181,18 +179,17 @@ async def subscribe(req: SubscribeRequest):
         base_url = f"https://{mc_server}.api.mailchimp.com/3.0"
         member_url = f"{base_url}/lists/{mc_list}/members/{member_hash}"
         try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                r = await client.get(member_url, auth=auth)
-                if r.status_code == 200:
-                    return {"status": "already_subscribed"}
-                if r.status_code != 404:
-                    raise Exception(f"GET {r.status_code}: {r.text}")
+            r = requests.get(member_url, auth=auth, timeout=10)
+            if r.status_code == 200:
+                return {"status": "already_subscribed"}
+            if r.status_code != 404:
+                raise Exception(f"GET {r.status_code}: {r.text}")
 
-                data = {"email_address": email, "status": "subscribed"}
-                r = await client.put(member_url, auth=auth, json=data)
-                if 200 <= r.status_code < 300:
-                    return {"status": "ok"}
-                raise Exception(f"PUT {r.status_code}: {r.text}")
+            data = {"email_address": email, "status": "subscribed"}
+            r = requests.put(member_url, auth=auth, json=data, timeout=10)
+            if 200 <= r.status_code < 300:
+                return {"status": "ok"}
+            raise Exception(f"PUT {r.status_code}: {r.text}")
         except Exception as e:
             print(f"Mailchimp error: {e}")
 
