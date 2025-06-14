@@ -15,6 +15,8 @@ Install Python packages:
 ```bash
 python3 -m pip install -r requirements.txt
 ```
+The `requirements.txt` file pins the exact package versions used by the
+project so your environment matches the tested configuration.
 
 Install frontend dependencies:
 
@@ -118,6 +120,7 @@ Events are logged via the `/log_event` endpoint which the frontend calls when
 the popup is shown, an email submission succeeds or fails, and when a user
 clicks **Maybe Later**.
 
+<<<<<< codex/set-up-pytest-for-backend-tests
 ## Running tests
 
 Python backend tests use pytest, and the UI uses Vitest. From the repo root run:
@@ -127,6 +130,19 @@ pytest
 cd graceguide-ui && npm test
 ```
 
+=======
+## Liturgical day
+
+An additional `/liturgical-day` endpoint returns basic information about the
+current or supplied date in the Roman calendar. Use a `date` query parameter in
+`YYYY-MM-DD` format to fetch other days:
+
+```bash
+curl http://localhost:8000/liturgical-day?date=2025-06-15
+```
+
+Responses are cached server-side for 24 hours.
+>>>>>> main
 
 ## Feedback log
 
