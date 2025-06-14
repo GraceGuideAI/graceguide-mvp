@@ -37,6 +37,24 @@ const instaShare = document.getElementById("instaShare");
 const emailShare = document.getElementById("emailShare");
 const closeShare = document.getElementById("closeShare");
 
+import { fetchLiturgicalDay } from "./liturgical.js";
+
+const litBanner = document.getElementById("litBanner");
+const litModal = document.getElementById("litModal");
+const litContent = document.getElementById("litContent");
+const litBody = document.getElementById("litBody");
+const litClose = document.getElementById("litClose");
+
+litBanner.addEventListener("click", () => {
+  litModal.classList.remove("hidden");
+  requestAnimationFrame(() => litModal.classList.add("opacity-100"));
+});
+
+litClose.addEventListener("click", () => {
+  litModal.classList.remove("opacity-100");
+  setTimeout(() => litModal.classList.add("hidden"), 300);
+});
+
 downloadLabel.textContent = "Download";
 
 async function logEvent(event) {
@@ -48,6 +66,7 @@ async function logEvent(event) {
     });
   } catch (_) {}
 }
+
 
 let mode = "both";
 sourceSlider.addEventListener("input", () => {
@@ -216,6 +235,7 @@ async function ask() {
   askLabel.classList.add("hidden");
   spinner.classList.remove("hidden");
   card.classList.add("hidden");
+  litBanner.classList.add("hidden");
 
 
   try {
@@ -265,6 +285,7 @@ async function ask() {
     spinner.classList.add("hidden");
     askLabel.classList.remove("hidden");
     askBtn.disabled = false;
+    litBanner.classList.remove("hidden");
   }
 }
 
@@ -395,3 +416,5 @@ downloadShare.addEventListener("click", async e => {
     } catch (_) {}
   }
 });
+
+fetchLiturgicalDay();
