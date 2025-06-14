@@ -15,6 +15,8 @@ Install Python packages:
 ```bash
 python3 -m pip install -r requirements.txt
 ```
+The `requirements.txt` file pins the exact package versions used by the
+project so your environment matches the tested configuration.
 
 Install frontend dependencies:
 
