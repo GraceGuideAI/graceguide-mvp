@@ -3,10 +3,7 @@ __pycache__/
 *.exe
 feedback.log
 node_modules/
-<<<<<< codex/set-up-pytest-for-backend-tests
-=======
 graceguide-ui/dist/
 qa_cache.json
 subscribers.csv
->>>>>> main
 metrics.csv
