@@ -2,9 +2,20 @@
 
 import os
 import json
+import sys
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma 
+from langchain_community.vectorstores import Chroma
+
+# Check for required API key before doing any heavy work
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    print(
+        "Error: The OPENAI_API_KEY environment variable is not set."
+        " Set it to your OpenAI API key before running this script.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 # 1) Load the JSON files (they live in the same folder as this script)
 with open("EntireBible-DR.json", "r", encoding="utf-8") as f:
@@ -63,7 +74,6 @@ for entry in combined:
         })
 
 # 7) Embed & save to Chroma using texts + metadata
-api_key = os.getenv("OPENAI_API_KEY")
 embeddings = OpenAIEmbeddings(openai_api_key=api_key)
 db = Chroma.from_texts(
     texts=docs,
