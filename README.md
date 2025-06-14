@@ -120,6 +120,17 @@ Events are logged via the `/log_event` endpoint which the frontend calls when
 the popup is shown, an email submission succeeds or fails, and when a user
 clicks **Maybe Later**.
 
+<<<<<< codex/set-up-pytest-for-backend-tests
+## Running tests
+
+Python backend tests use pytest, and the UI uses Vitest. From the repo root run:
+
+```bash
+pytest
+cd graceguide-ui && npm test
+```
+
+=======
 ## Liturgical day
 
 An additional `/liturgical-day` endpoint returns basic information about the
@@ -131,6 +142,7 @@ curl http://localhost:8000/liturgical-day?date=2025-06-15
 ```
 
 Responses are cached server-side for 24 hours.
+>>>>>> main
 
 ## Feedback log
 

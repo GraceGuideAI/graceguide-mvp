@@ -217,4 +217,63 @@ closeModalBtn.addEventListener('click', () => {
   logEvent('modal_close');
 });
 
+<<<<<< codex/set-up-pytest-for-backend-tests
+function onClickOutside(e) {
+  if (!historySidebar.contains(e.target) &&
+      ![...historyToggles].some(btn => btn.contains(e.target))) {
+    closeHistory();
+  }
+}
+
+document.addEventListener("click", onClickOutside);
+
+historyToggles.forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (historySidebar.classList.contains("-translate-x-full")) {
+      openHistory();
+    } else {
+      closeHistory();
+    }
+  });
+});
+
+closeShare.addEventListener("click", hideShareModal);
+
+xShare.addEventListener("click", async () => {
+  if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+    await navigator.share({ files: [shareFile], text: "GraceGuideAI Q&A" });
+  } else {
+    const url = "https://x.com/intent/tweet?text=" + encodeURIComponent("GraceGuideAI Q&A");
+    window.open(url, "_blank");
+  }
+});
+
+instaShare.addEventListener("click", async () => {
+  if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+    await navigator.share({ files: [shareFile], text: "GraceGuideAI Q&A" });
+  } else {
+    alert("Your browser does not support direct image sharing. Please download the image and share manually.");
+  }
+});
+
+emailShare.addEventListener("click", async () => {
+  if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+    await navigator.share({ files: [shareFile], title: "GraceGuideAI Q&A" });
+  } else {
+    window.location.href = "mailto:?subject=GraceGuideAI%20Q%26A";
+  }
+});
+
+downloadShare.addEventListener("click", async e => {
+  if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+    e.preventDefault();
+    try {
+      await navigator.share({ files: [shareFile] });
+    } catch (_) {}
+  }
+});
+
+export { showModal, hideModal, showShareModal, hideShareModal };
+=======
 fetchLiturgicalDay();
+>>>>>> main
