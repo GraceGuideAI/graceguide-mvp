@@ -7,6 +7,10 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 import json
 from pathlib import Path
+<<<<<< codex/replace-requests-with-httpx.asyncclient
+=======
+from datetime import datetime, timedelta, date
+>>>>>> main
 import httpx
 
 # Cache file setup
@@ -51,6 +55,12 @@ llm = ChatOpenAI(
 
 # 5) Create FastAPI app and enable CORS
 app = FastAPI(title="Veritas AI QA API")
+
+
+@app.on_event("startup")
+def init_lit_cache():
+    """Initialize the liturgical-day cache."""
+    app.state.lit_cache = {}
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -209,12 +219,44 @@ def get_metrics(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return metrics.get_counts()
 
-# 10) /log_event endpoint to record frontend events
+# 10) /liturgical-day endpoint with caching
+@app.get("/liturgical-day")
+async def liturgical_day(date: str | None = None):
+    """Return liturgical info for the given date (YYYY-MM-DD)."""
+    try:
+        target = datetime.strptime(date, "%Y-%m-%d").date() if date else datetime.utcnow().date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format; expected YYYY-MM-DD")
+
+    cache = app.state.lit_cache
+    info = cache.get(str(target))
+    if info and info["timestamp"] > datetime.utcnow() - timedelta(hours=24):
+        return info["data"]
+
+    url = f"https://calapi.inadiutorium.cz/api/v0/en/calendars/general-en/{target.year}/{target.month}/{target.day}"
+    async with httpx.AsyncClient(http2=True) as client:
+        resp = await client.get(url, timeout=10)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail=f"Upstream {resp.status_code}")
+    raw = resp.json()
+    trimmed = {
+        "date": raw.get("date"),
+        "season": raw.get("season"),
+        "weekday": raw.get("weekday"),
+        "celebrations": [
+            {"title": c.get("title"), "colour": c.get("colour"), "rank": c.get("rank")}
+            for c in raw.get("celebrations", [])
+        ],
+    }
+    cache[str(target)] = {"timestamp": datetime.utcnow(), "data": trimmed}
+    return trimmed
+
+# 11) /log_event endpoint to record frontend events
 @app.post("/log_event")
 def log_event(evt: LogEvent):
     metrics.log_event(evt.event)
     return {"status": "ok"}
-# 11) (optional) serve your UI if it exists
+# 12) (optional) serve your UI if it exists
 ui_path = "graceguide-ui/dist"
 if os.path.isdir(ui_path):
     app.mount("/static", StaticFiles(directory=ui_path, html=False), name="static")
