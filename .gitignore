@@ -3,7 +3,3 @@ __pycache__/
 *.exe
 feedback.log
 node_modules/
-graceguide-ui/dist/
-qa_cache.json
-subscribers.csv
-metrics.csv
