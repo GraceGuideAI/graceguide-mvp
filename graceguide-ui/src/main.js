@@ -132,6 +132,7 @@ async function generateShareImage(q, a) {
   qLabel.textContent = 'Q:';
   qEl.appendChild(qLabel);
   qEl.appendChild(document.createTextNode(' ' + q));
+  qEl.style.overflowWrap = 'anywhere';
 
   const aEl = document.createElement('p');
   const aLabel = document.createElement('span');
@@ -139,6 +140,7 @@ async function generateShareImage(q, a) {
   aLabel.textContent = 'A:';
   aEl.appendChild(aLabel);
   aEl.appendChild(document.createTextNode(' ' + a));
+  aEl.style.overflowWrap = 'anywhere';
 
   qaWrap.appendChild(qEl);
   qaWrap.appendChild(aEl);
