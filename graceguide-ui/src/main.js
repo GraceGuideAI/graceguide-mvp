@@ -129,6 +129,7 @@ async function generateShareImage(q, a) {
 
   const qaWrap = document.createElement('div');
   qaWrap.className = 'flex-1 flex flex-col justify-center gap-4 text-xl';
+  qaWrap.style.overflowWrap = 'anywhere';
   const qEl = document.createElement('p');
   qEl.innerHTML = '<span class="font-semibold">Q:</span> ' + q;
   const aEl = document.createElement('p');
