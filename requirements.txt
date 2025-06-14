@@ -23,11 +23,7 @@ langchain-chroma
 httpx
 =======
 requests
-<<<<<< codex/set-up-pytest-for-backend-tests
-pytest
-=======
 
 httpx[http2]==0.27.0
->>>>>> main
 >>>>>> main
 >>>>>> main
