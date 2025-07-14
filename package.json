@@ -12,6 +12,6 @@
   "type": "commonjs",
   "dependencies": {
     "html2canvas": "^1.4.1",
-    "puppeteer": "^24.10.1"
+    "puppeteer": "^24.12.1"
   }
 }
