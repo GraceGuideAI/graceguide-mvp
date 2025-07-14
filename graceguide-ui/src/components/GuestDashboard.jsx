@@ -1,6 +1,20 @@
 import React from 'react';
 
-function GuestDashboard() {
+function Footer() {
+  return (
+    <footer className="text-center text-xs text-gray-500 py-4 border-t">
+      <a href="#" className="mx-2 hover:underline">About</a>
+      <span>&bull;</span>
+      <a href="#" className="mx-2 hover:underline">Privacy</a>
+      <span>&bull;</span>
+      <a href="#" className="mx-2 hover:underline">Terms</a>
+      <span>&bull;</span>
+      <a href="#" className="mx-2 hover:underline">Contact</a>
+    </footer>
+  );
+}
+
+function GuestDashboard({ onSignIn }) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -12,7 +26,12 @@ function GuestDashboard() {
           GraceGuideAI
         </div>
         <div className="space-x-2">
-          <button className="text-brand font-medium">Sign In</button>
+          <button
+            className="text-brand font-medium"
+            onClick={() => onSignIn && onSignIn()}
+          >
+            Sign In
+          </button>
           <button className="bg-brand text-white px-3 py-1 rounded-md">Sign Up</button>
         </div>
       </header>
@@ -45,17 +64,10 @@ function GuestDashboard() {
       </main>
 
       {/* Footer */}
-      <footer className="text-center text-xs text-gray-500 py-4 border-t">
-        <a href="#" className="mx-2 hover:underline">About</a>
-        <span>&bull;</span>
-        <a href="#" className="mx-2 hover:underline">Privacy</a>
-        <span>&bull;</span>
-        <a href="#" className="mx-2 hover:underline">Terms</a>
-        <span>&bull;</span>
-        <a href="#" className="mx-2 hover:underline">Contact</a>
-      </footer>
+      <Footer />
     </div>
   );
 }
 
+GuestDashboard.Footer = Footer;
 export default GuestDashboard;

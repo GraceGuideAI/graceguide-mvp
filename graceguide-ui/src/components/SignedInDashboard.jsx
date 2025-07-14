@@ -1,7 +1,7 @@
 import React from 'react';
 import GuestDashboard from './GuestDashboard';
 
-function SignedInDashboard({ name = 'Friend' }) {
+function SignedInDashboard({ name = 'Friend', onSignOut }) {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex items-center justify-between p-4 border-b">
@@ -14,6 +14,11 @@ function SignedInDashboard({ name = 'Friend' }) {
           <button title="Saved">💾</button>
           <button title="Settings">⚙️</button>
           <img src="/avatar.png" alt="Avatar" className="h-8 w-8 rounded-full" />
+          {onSignOut && (
+            <button className="text-sm underline" onClick={onSignOut}>
+              Sign Out
+            </button>
+          )}
         </div>
       </header>
 
