@@ -3,3 +3,6 @@ __pycache__/
 *.exe
 feedback.log
 node_modules/
+users.json
+qa_cache.json
+.env
