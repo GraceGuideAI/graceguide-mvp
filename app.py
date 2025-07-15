@@ -7,6 +7,26 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 import json
 from pathlib import Path
+import hashlib
+import secrets
+import jwt
+from datetime import datetime, timedelta
+
+# JWT secret key
+JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_HOURS = 24 * 30  # 30 days
+
+# User storage file
+USERS_FILE = Path("users.json")
+if USERS_FILE.exists():
+    try:
+        with USERS_FILE.open("r") as f:
+            users = json.load(f)
+    except Exception:
+        users = {}
+else:
+    users = {}
 
 # Cache file setup
 CACHE_FILE = Path("qa_cache.json")
@@ -53,11 +73,14 @@ app = FastAPI(title="Veritas AI QA API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
         "https://yourdomain.com",
         "https://ef5c-198-232-127-236.ngrok-free.app"
     ],
-    allow_methods=["POST"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
 
 security = HTTPBasic()
@@ -82,6 +105,71 @@ class SubscribeRequest(BaseModel):
 
 class LogEvent(BaseModel):
     event: str
+
+class AuthRequest(BaseModel):
+    email: str
+    password: str
+
+class AuthResponse(BaseModel):
+    token: str
+    email: str
+
+def hash_password(password: str) -> str:
+    """Hash password with salt"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def create_jwt_token(email: str) -> str:
+    """Create JWT token for user"""
+    expiration = datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+    payload = {
+        "email": email,
+        "exp": expiration
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+def save_users():
+    """Save users to file"""
+    try:
+        with USERS_FILE.open("w") as f:
+            json.dump(users, f)
+    except Exception:
+        pass
+
+# Authentication endpoints
+@app.post("/auth/signup", response_model=AuthResponse)
+def signup(request: AuthRequest):
+    email = request.email.lower().strip()
+    
+    # Check if user already exists
+    if email in users:
+        raise HTTPException(status_code=400, detail="User already exists")
+    
+    # Create new user
+    users[email] = {
+        "password_hash": hash_password(request.password),
+        "created_at": datetime.utcnow().isoformat()
+    }
+    save_users()
+    
+    # Create token
+    token = create_jwt_token(email)
+    return AuthResponse(token=token, email=email)
+
+@app.post("/auth/signin", response_model=AuthResponse)
+def signin(request: AuthRequest):
+    email = request.email.lower().strip()
+    
+    # Check if user exists
+    if email not in users:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Verify password
+    if users[email]["password_hash"] != hash_password(request.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Create token
+    token = create_jwt_token(email)
+    return AuthResponse(token=token, email=email)
 
 # 7) /qa endpoint
 @app.post("/qa", response_model=QAResponse)
