@@ -30,38 +30,43 @@ function ThickHamburgerIcon() {
 
 function MobileHeader({ darkMode, setDarkMode, onMenu, onSignIn }) {
   return (
-    <header className="relative flex items-center justify-center px-4 py-3" style={{ background: 'linear-gradient(90deg, #1e3c72 0%, #2a5298 100%)' }}>
-      <button
-        className="mr-2 p-2 rounded focus:outline-none bg-blue-900/30 z-10"
-        onClick={onMenu}
-        aria-label="Open history"
-        style={{ position: 'absolute', left: 8 }}
-      >
-        <ThickHamburgerIcon />
-      </button>
-      <div className="flex flex-col items-center flex-1">
-        <div className="flex items-center gap-2 justify-center w-full">
-          <span className="text-yellow-400 text-2xl font-bold">+</span>
-          <span className="text-white text-2xl font-bold">GraceGuideAI</span>
+    <header className="flex flex-col" style={{ background: 'linear-gradient(90deg, #1e3c72 0%, #2a5298 100%)' }}>
+      {/* Top row with hamburger, logo, and actions */}
+      <div className="flex items-center justify-between px-3 py-2">
+        <button
+          className="p-2 rounded focus:outline-none bg-blue-900/30"
+          onClick={onMenu}
+          aria-label="Open history"
+        >
+          <ThickHamburgerIcon />
+        </button>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-yellow-400 text-xl font-bold">+</span>
+          <span className="text-white text-xl font-bold">GraceGuideAI</span>
         </div>
-        <span className="text-yellow-300 text-sm font-medium -mt-1 text-center w-full">Catholic answers powered by Scripture & Catechism</span>
+        
+        <div className="flex items-center gap-1">
+          <button
+            className="p-1.5 rounded-full flex items-center justify-center"
+            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            onClick={() => setDarkMode(!darkMode)}
+          >
+            <TraditionalMoonIcon />
+          </button>
+          <button
+            className="px-3 py-1.5 rounded-full flex items-center justify-center font-semibold text-white text-xs shadow-lg border border-blue-200 hover:bg-blue-700 transition-all"
+            style={{ background: '#7B9DE7', boxShadow: '0 2px 8px #7B9DE733' }}
+            onClick={onSignIn}
+          >
+            Sign In/Sign Up
+          </button>
+        </div>
       </div>
-      <div className="flex items-center gap-2 ml-2 z-10" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}>
-        <button
-          className="p-1 rounded-full flex items-center justify-center"
-          title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-          onClick={() => setDarkMode(!darkMode)}
-          style={{ background: 'transparent', boxShadow: 'none' }}
-        >
-          <TraditionalMoonIcon />
-        </button>
-        <button
-          className="ml-1 px-4 py-2 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-lg border-2 border-blue-200 hover:bg-blue-700 transition-all"
-          style={{ background: '#7B9DE7', boxShadow: '0 2px 8px #7B9DE733' }}
-          onClick={onSignIn}
-        >
-          Sign In/Sign Up
-        </button>
+      
+      {/* Tagline row */}
+      <div className="pb-2 px-3">
+        <span className="text-yellow-300 text-xs font-medium text-center block">Catholic answers powered by Scripture & Catechism</span>
       </div>
     </header>
   );
@@ -367,24 +372,24 @@ export default function GuestDashboard({ onSignIn }) {
           setShowSignIn(true);
         }}
       />
-      <main className="flex flex-col items-center px-4 md:px-8 pt-6 md:pt-12 w-full">
+      <main className="flex flex-col items-center px-4 md:px-8 pt-4 md:pt-12 w-full">
         <div className="w-full max-w-xl md:max-w-3xl lg:max-w-4xl flex flex-col items-center mx-auto">
-          <label className="block text-lg md:text-xl font-medium text-gray-800 dark:text-gray-100 mb-2 md:mb-4 text-center w-full">Ask your question</label>
+          <label className="block text-base sm:text-lg md:text-xl font-medium text-gray-800 dark:text-gray-100 mb-2 md:mb-4 text-center w-full">Ask your question</label>
           <textarea
-            className="w-full border border-gray-300 rounded-lg p-4 md:p-6 text-lg md:text-xl mb-2 md:mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-800 dark:text-white text-left resize-none"
+            className="w-full border border-gray-300 rounded-lg p-3 sm:p-4 md:p-6 text-base sm:text-lg md:text-xl mb-2 md:mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-800 dark:text-white text-left resize-none"
             rows={4}
             placeholder="e.g. What does the Catechism say about forgiveness?"
             value={question}
             onChange={e => setQuestion(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <div className="flex flex-col md:flex-row items-center justify-between w-full mt-2 mb-4 gap-4 md:gap-8">
-            <div className="w-full md:flex-1 flex justify-center md:justify-start">
+          <div className="flex items-center justify-between w-full mt-2 mb-4 gap-2">
+            <div className="flex-shrink-0">
               <SourceSlider value={source} onChange={setSource} />
             </div>
-            <div className="w-full md:w-auto flex justify-center md:justify-end">
+            <div className="flex-shrink-0">
               <button
-                className="bg-blue-900 text-white px-8 md:px-12 py-2 md:py-3 rounded-lg font-semibold text-lg md:text-xl shadow hover:bg-blue-800 transition disabled:opacity-50 w-full md:w-auto"
+                className="bg-blue-900 text-white px-6 sm:px-8 md:px-12 py-2 md:py-3 rounded-lg font-semibold text-base sm:text-lg md:text-xl shadow hover:bg-blue-800 transition disabled:opacity-50"
                 onClick={handleAsk}
                 disabled={!question.trim() || loading}
               >
