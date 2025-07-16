@@ -11,6 +11,7 @@ import hashlib
 import secrets
 import jwt
 from datetime import datetime, timedelta
+import random
 
 # JWT secret key
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
@@ -170,6 +171,116 @@ def signin(request: AuthRequest):
     # Create token
     token = create_jwt_token(email)
     return AuthResponse(token=token, email=email)
+
+# Verse of the Day models
+class VerseOfTheDayResponse(BaseModel):
+    verse_text: str
+    verse_reference: str
+    explanation: str
+    catechism_references: list[str]
+
+# Load meaningful verses for daily selection
+MEANINGFUL_VERSES = [
+    {"book": "Matthew", "chapter": "5", "verse": "8", "theme": "purity"},
+    {"book": "John", "chapter": "3", "verse": "16", "theme": "love"},
+    {"book": "Psalms", "chapter": "23", "verse": "1", "theme": "trust"},
+    {"book": "Romans", "chapter": "8", "verse": "28", "theme": "providence"},
+    {"book": "1 Corinthians", "chapter": "13", "verse": "13", "theme": "love"},
+    {"book": "Philippians", "chapter": "4", "verse": "13", "theme": "strength"},
+    {"book": "Isaiah", "chapter": "40", "verse": "31", "theme": "hope"},
+    {"book": "Proverbs", "chapter": "3", "verse": "5", "theme": "trust"},
+    {"book": "Matthew", "chapter": "6", "verse": "33", "theme": "priorities"},
+    {"book": "James", "chapter": "1", "verse": "5", "theme": "wisdom"},
+    {"book": "Ephesians", "chapter": "2", "verse": "8", "theme": "grace"},
+    {"book": "Hebrews", "chapter": "11", "verse": "1", "theme": "faith"},
+    {"book": "Jeremiah", "chapter": "29", "verse": "11", "theme": "hope"},
+    {"book": "Matthew", "chapter": "11", "verse": "28", "theme": "rest"},
+    {"book": "John", "chapter": "14", "verse": "6", "theme": "truth"},
+]
+
+# Cache for verse of the day
+verse_of_day_cache = {}
+
+@app.get("/verse-of-the-day", response_model=VerseOfTheDayResponse)
+def get_verse_of_the_day():
+    # Use current date as key for consistent daily verse
+    today = datetime.utcnow().date().isoformat()
+    
+    # Check cache first
+    if today in verse_of_day_cache:
+        return VerseOfTheDayResponse(**verse_of_day_cache[today])
+    
+    # Select verse based on day of year for consistency
+    day_of_year = datetime.utcnow().timetuple().tm_yday
+    verse_index = day_of_year % len(MEANINGFUL_VERSES)
+    selected_verse = MEANINGFUL_VERSES[verse_index]
+    
+    # Load Bible data to get the verse text
+    try:
+        with open("EntireBible-DR.json", "r", encoding="utf-8") as f:
+            bible_data = json.load(f)
+        
+        verse_text = bible_data.get(selected_verse["book"], {}).get(
+            selected_verse["chapter"], {}
+        ).get(selected_verse["verse"], "Verse not found")
+        
+        verse_reference = f"{selected_verse['book']} {selected_verse['chapter']}:{selected_verse['verse']}"
+        
+        # Generate explanation using the LLM with Catechism context
+        prompt = f"""Given this Bible verse: "{verse_text}" ({verse_reference})
+
+Please provide a brief Catholic explanation (2-3 sentences) that:
+1. Explains the spiritual meaning of this verse
+2. Connects it to Catholic teaching from the Catechism
+3. Offers a practical application for daily life
+
+Keep the explanation concise and accessible."""
+
+        # Search for relevant Catechism passages
+        theme_filter = {"source": "CCC"}
+        catechism_retriever = vectorstore.as_retriever(
+            search_kwargs={"k": 3, "filter": theme_filter}
+        )
+        
+        # Get relevant CCC passages based on the verse theme
+        search_query = f"{selected_verse['theme']} {verse_text[:50]}"
+        relevant_docs = catechism_retriever.get_relevant_documents(search_query)
+        
+        # Extract CCC references
+        catechism_refs = []
+        for doc in relevant_docs:
+            ref = doc.metadata.get("reference", "")
+            if ref and ref not in catechism_refs:
+                catechism_refs.append(ref)
+        
+        # Generate explanation
+        try:
+            response = llm.invoke(prompt)
+            explanation = str(response.content).strip() if hasattr(response, 'content') else str(response).strip()
+        except Exception as e:
+            explanation = "This verse reminds us of God's infinite love and mercy. The Catechism teaches us that Scripture is the living Word of God, speaking to us today. Let us meditate on this verse and apply its wisdom to our daily lives."
+        
+        # Prepare response
+        result = {
+            "verse_text": verse_text,
+            "verse_reference": verse_reference,
+            "explanation": explanation,
+            "catechism_references": catechism_refs[:2]  # Limit to 2 references
+        }
+        
+        # Cache the result
+        verse_of_day_cache[today] = result
+        
+        return VerseOfTheDayResponse(**result)
+        
+    except Exception as e:
+        # Fallback response
+        return VerseOfTheDayResponse(
+            verse_text="For God so loved the world, as to give his only begotten Son: that whosoever believeth in him may not perish, but may have life everlasting.",
+            verse_reference="John 3:16",
+            explanation="This verse encapsulates the heart of the Gospel - God's infinite love for humanity. The Catechism teaches that God's love is the source of our salvation. Today, let us reflect on how we can share this divine love with others.",
+            catechism_references=["CCC 457", "CCC 458"]
+        )
 
 # 7) /qa endpoint
 @app.post("/qa", response_model=QAResponse)

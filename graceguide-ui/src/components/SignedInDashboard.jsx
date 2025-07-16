@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import VerseOfTheDay from './VerseOfTheDay';
 
 const SOURCES = [
   { label: 'Blend', value: 'both' },
@@ -397,6 +398,9 @@ export default function SignedInDashboard({ user, onSignOut }) {
             </div>
           </div>
 
+          {/* Verse of the Day - shows when no answer is displayed */}
+          <VerseOfTheDay isVisible={!answer} />
+
           {error && (
             <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400">
               {error}
@@ -409,6 +413,9 @@ export default function SignedInDashboard({ user, onSignOut }) {
               <div className="mb-2 md:mb-4 text-base md:text-lg text-blue-900 dark:text-blue-100 whitespace-pre-wrap">{answer}</div>
             </div>
           )}
+          
+          {/* Verse of the Day - shows below answer when answer is displayed */}
+          {answer && <VerseOfTheDay isVisible={true} />}
         </div>
       </main>
 

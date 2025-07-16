@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SignInModal, SignUpModal } from './AuthModals';
+import VerseOfTheDay from './VerseOfTheDay';
 
 const SOURCES = [
   { label: 'Blend', value: 'both' },
@@ -436,6 +437,10 @@ export default function GuestDashboard({ onSignIn }) {
               </button>
             </div>
           </div>
+          
+          {/* Verse of the Day - shows when no answer is displayed */}
+          <VerseOfTheDay isVisible={!answer} />
+          
           {answer && (
             <div className="mt-6 md:mt-8 p-4 md:p-6 border rounded-lg bg-blue-50 dark:bg-gray-800 text-left w-full">
               <div className="font-semibold mb-2 md:mb-3 text-lg md:text-xl text-blue-900 dark:text-white">Answer:</div>
@@ -452,6 +457,10 @@ export default function GuestDashboard({ onSignIn }) {
               )}
             </div>
           )}
+          
+          {/* Verse of the Day - shows below answer when answer is displayed */}
+          {answer && <VerseOfTheDay isVisible={true} />}
+          
           {error && (
             <div className="mt-2 text-red-600 text-sm w-full text-center">{error}</div>
           )}
