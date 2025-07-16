@@ -29,44 +29,86 @@ function ThickHamburgerIcon() {
 
 function MobileHeader({ darkMode, setDarkMode, onMenu, user, onSignOut }) {
   return (
-    <header className="flex flex-col" style={{ background: 'linear-gradient(90deg, #1e3c72 0%, #2a5298 100%)' }}>
-      {/* Top row with hamburger, logo, and actions */}
-      <div className="flex items-center justify-between px-3 py-2">
+    <header className="flex flex-col md:block" style={{ background: 'linear-gradient(90deg, #1e3c72 0%, #2a5298 100%)' }}>
+      {/* Mobile layout */}
+      <div className="md:hidden">
+        {/* Top row with hamburger, logo, and actions */}
+        <div className="flex items-center justify-between px-3 py-2">
+          <button
+            className="p-2 rounded focus:outline-none bg-blue-900/30"
+            onClick={onMenu}
+            aria-label="Open history"
+          >
+            <ThickHamburgerIcon />
+          </button>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 text-xl font-bold">+</span>
+            <span className="text-white text-xl font-bold">GraceGuideAI</span>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            <button
+              className="p-1.5 rounded-full flex items-center justify-center"
+              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              onClick={() => setDarkMode(!darkMode)}
+            >
+              <TraditionalMoonIcon />
+            </button>
+            <button
+              className="px-3 py-1.5 rounded-full flex items-center justify-center font-semibold text-white text-xs shadow-lg border border-blue-200 hover:bg-blue-700 transition-all"
+              style={{ background: '#7B9DE7', boxShadow: '0 2px 8px #7B9DE733' }}
+              onClick={onSignOut}
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+        
+        {/* Tagline and user info row */}
+        <div className="pb-2 px-3">
+          <span className="text-yellow-300 text-xs font-medium text-center block">Catholic answers powered by Scripture & Catechism</span>
+          <span className="text-white text-xs text-center block mt-0.5">{user?.email}</span>
+        </div>
+      </div>
+
+      {/* Desktop layout */}
+      <div className="hidden md:block relative px-4 py-3">
         <button
-          className="p-2 rounded focus:outline-none bg-blue-900/30"
+          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded focus:outline-none bg-blue-900/30"
           onClick={onMenu}
           aria-label="Open history"
         >
           <ThickHamburgerIcon />
         </button>
         
-        <div className="flex items-center gap-2">
-          <span className="text-yellow-400 text-xl font-bold">+</span>
-          <span className="text-white text-xl font-bold">GraceGuideAI</span>
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 text-2xl font-bold">+</span>
+            <span className="text-white text-2xl font-bold">GraceGuideAI</span>
+          </div>
+          <span className="text-yellow-300 text-sm font-medium -mt-1">Catholic answers powered by Scripture & Catechism</span>
         </div>
         
-        <div className="flex items-center gap-1">
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
           <button
-            className="p-1.5 rounded-full flex items-center justify-center"
+            className="p-1 rounded-full flex items-center justify-center"
             title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             onClick={() => setDarkMode(!darkMode)}
           >
             <TraditionalMoonIcon />
           </button>
-          <button
-            className="px-3 py-1.5 rounded-full flex items-center justify-center font-semibold text-white text-xs shadow-lg border border-blue-200 hover:bg-blue-700 transition-all"
-            style={{ background: '#7B9DE7', boxShadow: '0 2px 8px #7B9DE733' }}
-            onClick={onSignOut}
-          >
-            Sign Out
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-white text-sm">{user?.email}</span>
+            <button
+              className="px-4 py-2 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-lg border-2 border-blue-200 hover:bg-blue-700 transition-all"
+              style={{ background: '#7B9DE7', boxShadow: '0 2px 8px #7B9DE733' }}
+              onClick={onSignOut}
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
-      </div>
-      
-      {/* Tagline and user info row */}
-      <div className="pb-2 px-3">
-        <span className="text-yellow-300 text-xs font-medium text-center block">Catholic answers powered by Scripture & Catechism</span>
-        <span className="text-white text-xs text-center block mt-0.5">{user?.email}</span>
       </div>
     </header>
   );
