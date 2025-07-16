@@ -367,24 +367,24 @@ export default function GuestDashboard({ onSignIn }) {
           setShowSignIn(true);
         }}
       />
-      <main className="flex flex-col items-center px-4 pt-6 w-full">
-        <div className="w-full max-w-xl flex flex-col items-center mx-auto">
-          <label className="block text-lg font-medium text-gray-800 dark:text-gray-100 mb-2 text-center w-full">Ask your question</label>
+      <main className="flex flex-col items-center px-4 md:px-8 pt-6 md:pt-12 w-full">
+        <div className="w-full max-w-xl md:max-w-3xl lg:max-w-4xl flex flex-col items-center mx-auto">
+          <label className="block text-lg md:text-xl font-medium text-gray-800 dark:text-gray-100 mb-2 md:mb-4 text-center w-full">Ask your question</label>
           <textarea
-            className="w-full border border-gray-300 rounded-lg p-4 text-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-800 dark:text-white text-left"
+            className="w-full border border-gray-300 rounded-lg p-4 md:p-6 text-lg md:text-xl mb-2 md:mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-800 dark:text-white text-left resize-none"
             rows={4}
             placeholder="e.g. What does the Catechism say about forgiveness?"
             value={question}
             onChange={e => setQuestion(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <div className="flex items-center justify-between w-full mt-2 mb-4 gap-2">
-            <div className="flex-1 flex justify-start">
+          <div className="flex flex-col md:flex-row items-center justify-between w-full mt-2 mb-4 gap-4 md:gap-8">
+            <div className="w-full md:flex-1 flex justify-center md:justify-start">
               <SourceSlider value={source} onChange={setSource} />
             </div>
-            <div className="flex-1 flex justify-end">
+            <div className="w-full md:w-auto flex justify-center md:justify-end">
               <button
-                className="bg-blue-900 text-white px-8 py-2 rounded-lg font-semibold text-lg shadow hover:bg-blue-800 transition disabled:opacity-50"
+                className="bg-blue-900 text-white px-8 md:px-12 py-2 md:py-3 rounded-lg font-semibold text-lg md:text-xl shadow hover:bg-blue-800 transition disabled:opacity-50 w-full md:w-auto"
                 onClick={handleAsk}
                 disabled={!question.trim() || loading}
               >
@@ -393,12 +393,12 @@ export default function GuestDashboard({ onSignIn }) {
             </div>
           </div>
           {answer && (
-            <div className="mt-6 p-4 border rounded-lg bg-blue-50 dark:bg-gray-800 text-left w-full">
-              <div className="font-semibold mb-2 text-blue-900 dark:text-white">Answer:</div>
-              <div className="mb-2 text-blue-900 dark:text-blue-100">{answer.answer}</div>
+            <div className="mt-6 md:mt-8 p-4 md:p-6 border rounded-lg bg-blue-50 dark:bg-gray-800 text-left w-full">
+              <div className="font-semibold mb-2 md:mb-3 text-lg md:text-xl text-blue-900 dark:text-white">Answer:</div>
+              <div className="mb-2 md:mb-4 text-base md:text-lg text-blue-900 dark:text-blue-100 whitespace-pre-wrap">{answer.answer}</div>
               {answer.sources && answer.sources.length > 0 && (
-                <div className="mt-2 text-xs text-blue-800 dark:text-blue-200">
-                  <div className="font-semibold">Sources:</div>
+                <div className="mt-3 md:mt-4 text-xs md:text-sm text-blue-800 dark:text-blue-200">
+                  <div className="font-semibold mb-1">Sources:</div>
                   <ul className="list-disc pl-5">
                     {answer.sources.map((src, idx) => (
                       <li key={idx}>{src}</li>
