@@ -1,5 +1,26 @@
 import React, { useState, useEffect } from 'react';
 
+// Helper function to parse and format the reflection text
+function formatReflectionText(text) {
+  if (!text) return [];
+  
+  // Remove numbered list markers and split into sections
+  const sections = text
+    .replace(/\d+\.\s*\*\*([^:]+):\*\*/g, '|SECTION|$1:')
+    .split('|SECTION|')
+    .filter(s => s.trim());
+  
+  return sections.map(section => {
+    const colonIndex = section.indexOf(':');
+    if (colonIndex === -1) return { title: '', content: section.trim() };
+    
+    const title = section.substring(0, colonIndex).trim();
+    const content = section.substring(colonIndex + 1).trim();
+    
+    return { title, content };
+  });
+}
+
 export default function VerseOfTheDay({ isVisible = true }) {
   const [verse, setVerse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +52,7 @@ export default function VerseOfTheDay({ isVisible = true }) {
 
   return (
     <div className="w-full max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto mt-4 mb-6 animate-fadeIn">
-      <div className="relative perspective-1000 h-80 md:h-96">
+      <div className="relative perspective-1000 min-h-[28rem] md:min-h-[32rem]">
         <div className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
           
           {/* Front of Card - Verse */}
@@ -71,7 +92,7 @@ export default function VerseOfTheDay({ isVisible = true }) {
 
           {/* Back of Card - Reflection */}
           <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-800 dark:to-purple-700 rounded-xl p-4 md:p-6 shadow-lg border border-purple-100 dark:border-purple-600 h-full flex flex-col">
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-800 dark:to-purple-700 rounded-xl p-4 md:p-6 shadow-lg border border-purple-100 dark:border-purple-600 h-full flex flex-col overflow-hidden">
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -93,11 +114,11 @@ export default function VerseOfTheDay({ isVisible = true }) {
                 </button>
               </div>
 
-              {/* Reflection Content */}
-              <div className="flex-1 overflow-y-auto">
-                {/* Verse text at top of reflection - smaller */}
-                <div className="mb-4 p-3 bg-purple-100/50 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-700">
-                  <p className="text-xs text-purple-800 dark:text-purple-200 italic leading-relaxed text-center">
+              {/* Reflection Content - No scroll, fully visible */}
+              <div className="flex-1 flex flex-col">
+                {/* Verse text at top - more compact */}
+                <div className="mb-3 p-2 bg-purple-100/40 dark:bg-purple-900/20 rounded-lg">
+                  <p className="text-xs text-purple-700 dark:text-purple-200 italic text-center">
                     "{verse.verse_text}"
                   </p>
                   <p className="text-xs text-purple-600 dark:text-purple-300 font-medium text-center mt-1">
@@ -105,20 +126,45 @@ export default function VerseOfTheDay({ isVisible = true }) {
                   </p>
                 </div>
                 
-                <div className="space-y-3">
-                  <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {verse.explanation}
-                  </p>
-                  
-                  {verse.catechism_references && verse.catechism_references.length > 0 && (
-                    <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">
-                      <p className="text-xs md:text-sm text-purple-700 dark:text-purple-300">
-                        <span className="font-medium">Related Catechism: </span>
-                        {verse.catechism_references.join(', ')}
-                      </p>
-                    </div>
-                  )}
+                {/* Formatted reflection sections */}
+                <div className="flex-1 space-y-2">
+                  {(() => {
+                    const sections = formatReflectionText(verse.explanation);
+                    
+                    // If no sections parsed, show as single paragraph
+                    if (sections.length === 0 || (sections.length === 1 && !sections[0].title)) {
+                      return (
+                        <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {verse.explanation}
+                        </p>
+                      );
+                    }
+                    
+                    // Show formatted sections
+                    return sections.map((section, index) => (
+                      <div key={index} className="">
+                        {section.title && (
+                          <h4 className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1">
+                            {section.title}
+                          </h4>
+                        )}
+                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {section.content}
+                        </p>
+                      </div>
+                    ));
+                  })()}
                 </div>
+                
+                {/* Catechism references - more compact */}
+                {verse.catechism_references && verse.catechism_references.length > 0 && (
+                  <div className="mt-3 bg-purple-100/60 dark:bg-purple-900/40 p-2 rounded-lg">
+                    <p className="text-xs text-purple-700 dark:text-purple-300">
+                      <span className="font-medium">Catechism: </span>
+                      {verse.catechism_references.join(', ')}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
