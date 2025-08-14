@@ -1,27 +1,43 @@
 import React, { useState, useEffect } from 'react';
 
-// Helper function to parse and format the reflection text
+// Helper function to parse and format the reflection text into paragraphs
 function formatReflectionText(text) {
   if (!text) return [];
   
-  // Try to parse numbered sections with bold headers
-  const pattern = /\d+\.\s*\*\*([^:]+):\*\*\s*([^0-9]+(?:\d(?!\.\s*\*\*)[^0-9]*)*)/g;
-  const sections = [];
+  // Remove numbered list format and extract just the content
+  // Pattern matches: 1. **Title:** content
+  const pattern = /\d+\.\s*\*\*[^:]+:\*\*\s*([^\n]+(?:\n(?!\d+\.\s*\*\*)[^\n]+)*)/g;
+  const paragraphs = [];
   let match;
   
   while ((match = pattern.exec(text)) !== null) {
-    sections.push({
-      title: match[1].trim(),
-      content: match[2].trim()
-    });
+    // Clean up the content - remove extra asterisks and trim
+    const content = match[1].trim().replace(/\*\*/g, '');
+    if (content) {
+      paragraphs.push(content);
+    }
   }
   
-  // If no sections found, return the text as is
-  if (sections.length === 0) {
-    return [{ title: '', content: text }];
+  // If no sections found, try splitting by numbered items without bold formatting
+  if (paragraphs.length === 0) {
+    // Try pattern: 1. Content (without bold headers)
+    const simplePattern = /\d+\.\s*([^\n]+(?:\n(?!\d+\.)[^\n]+)*)/g;
+    let simpleMatch;
+    
+    while ((simpleMatch = simplePattern.exec(text)) !== null) {
+      const content = simpleMatch[1].trim();
+      if (content) {
+        paragraphs.push(content);
+      }
+    }
   }
   
-  return sections;
+  // If still no paragraphs found, return the original text as single paragraph
+  if (paragraphs.length === 0) {
+    return [text];
+  }
+  
+  return paragraphs;
 }
 
 export default function VerseOfTheDay({ isVisible = true }) {
@@ -121,34 +137,13 @@ export default function VerseOfTheDay({ isVisible = true }) {
                   </p>
                 </div>
                 
-                {/* Reflection text */}
+                {/* Reflection text - clean paragraphs */}
                 <div className="flex-1 space-y-3 overflow-y-auto">
-                  {(() => {
-                    const sections = formatReflectionText(verse.explanation);
-                    
-                    // If parsing found sections with titles
-                    if (sections.length > 0 && sections.some(s => s.title)) {
-                      return sections.map((section, index) => (
-                        <div key={index}>
-                          {section.title && (
-                            <h4 className="text-sm font-semibold text-purple-700 dark:text-purple-300 mb-1">
-                              {section.title}
-                            </h4>
-                          )}
-                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                            {section.content}
-                          </p>
-                        </div>
-                      ));
-                    }
-                    
-                    // Otherwise show as single paragraph
-                    return (
-                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                        {verse.explanation}
-                      </p>
-                    );
-                  })()}
+                  {formatReflectionText(verse.explanation).map((paragraph, index) => (
+                    <p key={index} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {paragraph}
+                    </p>
+                  ))}
                 </div>
                 
                 {/* Catechism references - more compact */}
