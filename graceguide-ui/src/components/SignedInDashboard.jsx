@@ -149,6 +149,7 @@ export default function SignedInDashboard({ user, onSignOut }) {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [error, setError] = useState('');
   const [source, setSource] = useState('both');
   const [darkMode, setDarkMode] = useState(() => {
@@ -181,8 +182,19 @@ export default function SignedInDashboard({ user, onSignOut }) {
     setLoading(true);
     setError('');
     setAnswer('');
+    setLoadingProgress(0);
+
+    // Progress simulation for better UX
+    const progressInterval = setInterval(() => {
+      setLoadingProgress(prev => {
+        if (prev >= 90) return prev; // Don't go beyond 90% until real completion
+        return prev + Math.random() * 15; // Random increments
+      });
+    }, 500);
 
     try {
+      const startTime = Date.now();
+      
       const response = await fetch('/qa', {
         method: 'POST',
         headers: {
@@ -199,21 +211,37 @@ export default function SignedInDashboard({ user, onSignOut }) {
       }
 
       const data = await response.json();
-      setAnswer(data.answer);
       
-      // Add to history
-      const newItem = {
-        id: Date.now(),
-        question: question.trim(),
-        answer: data.answer,
-        source: source,
-        timestamp: new Date().toISOString()
-      };
-      setHistory(prev => [newItem, ...prev].slice(0, 50)); // Keep last 50 items
+      // Complete progress
+      clearInterval(progressInterval);
+      setLoadingProgress(100);
+      
+      // Small delay to show completion
+      setTimeout(() => {
+        setAnswer(data.answer);
+        
+        // Add to history
+        const newItem = {
+          id: Date.now(),
+          question: question.trim(),
+          answer: data.answer,
+          source: source,
+          timestamp: new Date().toISOString()
+        };
+        setHistory(prev => [newItem, ...prev].slice(0, 50)); // Keep last 50 items
+        
+        const endTime = Date.now();
+        console.log(`Response time: ${endTime - startTime}ms`);
+      }, 300);
+      
     } catch (err) {
+      clearInterval(progressInterval);
       setError('Failed to get answer. Please try again.');
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+        setLoadingProgress(0);
+      }, 300);
     }
   };
 
@@ -393,13 +421,49 @@ export default function SignedInDashboard({ user, onSignOut }) {
                 onClick={handleAsk}
                 disabled={!question.trim() || loading}
               >
-                {loading ? 'Asking...' : 'Ask'}
+{loading ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Searching...
+                  </span>
+                ) : 'Ask'}
               </button>
             </div>
           </div>
 
           {/* Verse of the Day - shows when no answer is displayed */}
           <VerseOfTheDay isVisible={!answer} />
+
+          {loading && (
+            <div className="mb-6 p-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-blue-700 dark:text-blue-300 font-medium">
+                  Searching through Scripture & Catechism...
+                </span>
+                <span className="text-blue-600 dark:text-blue-400 text-sm">
+                  {Math.round(loadingProgress)}%
+                </span>
+              </div>
+              <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2.5">
+                <div 
+                  className="bg-blue-600 dark:bg-blue-400 h-2.5 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${loadingProgress}%` }}
+                ></div>
+              </div>
+              <div className="mt-3 flex items-center justify-center">
+                <svg className="animate-spin h-5 w-5 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span className="ml-2 text-blue-600 dark:text-blue-400 text-sm">
+                  This usually takes 5-10 seconds...
+                </span>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400">

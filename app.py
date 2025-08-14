@@ -60,13 +60,15 @@ vectorstore = Chroma(
 )
 
 # 3) Build retriever
-retriever = vectorstore.as_retriever(search_kwargs={"k": 8})
+retriever = vectorstore.as_retriever(search_kwargs={"k": 5})  # Reduced from 8 to 5 for faster processing
 
 # 4) Initialize the Chat model
 llm = ChatOpenAI(
-    model_name="gpt-4-turbo",
+    model_name="gpt-4o-mini",  # Much faster than gpt-4-turbo, still very capable
     temperature=0.0,
-    openai_api_key=api_key
+    openai_api_key=api_key,
+    max_tokens=1500,  # Limit response length for faster processing
+    request_timeout=30  # 30 second timeout
 )
 
 # 5) Create FastAPI app and enable CORS
@@ -297,7 +299,7 @@ def qa(request: QARequest):
         filter_opt = {"source": "CCC"}
 
     local_retriever = vectorstore.as_retriever(
-        search_kwargs={"k": 8, **({"filter": filter_opt} if filter_opt else {})}
+        search_kwargs={"k": 5, **({"filter": filter_opt} if filter_opt else {})}  # Reduced from 8 to 5
     )
 
     chain = RetrievalQA.from_chain_type(
