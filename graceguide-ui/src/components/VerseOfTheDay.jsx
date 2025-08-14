@@ -4,7 +4,7 @@ export default function VerseOfTheDay({ isVisible = true }) {
   const [verse, setVerse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expanded, setExpanded] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
 
   useEffect(() => {
     fetchVerseOfDay();
@@ -31,65 +31,96 @@ export default function VerseOfTheDay({ isVisible = true }) {
 
   return (
     <div className="w-full max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto mt-4 mb-6 animate-fadeIn">
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 md:p-6 shadow-lg border border-blue-100 dark:border-gray-600">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <h3 className="text-sm md:text-base font-semibold text-blue-900 dark:text-white">
-              Verse of the Day
-            </h3>
-          </div>
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-            aria-label={expanded ? "Collapse" : "Expand"}
-          >
-            <svg className={`w-5 h-5 transform transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Verse Text */}
-        <div className="mb-3">
-          <p className="text-base md:text-lg text-gray-800 dark:text-gray-100 italic leading-relaxed">
-            "{verse.verse_text}"
-          </p>
-          <p className="text-sm md:text-base text-blue-700 dark:text-blue-300 font-medium mt-2">
-            — {verse.verse_reference}
-          </p>
-        </div>
-
-        {/* Explanation (collapsible) */}
-        <div className={`overflow-hidden transition-all duration-300 ${expanded ? 'max-h-96' : 'max-h-0'}`}>
-          <div className="pt-3 border-t border-blue-200 dark:border-gray-600">
-            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Catholic Reflection
-            </h4>
-            <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
-              {verse.explanation}
-            </p>
-            
-            {verse.catechism_references && verse.catechism_references.length > 0 && (
-              <div className="text-xs md:text-sm text-blue-600 dark:text-blue-400">
-                <span className="font-medium">Related Catechism: </span>
-                {verse.catechism_references.join(', ')}
+      <div className="relative perspective-1000 h-80 md:h-96">
+        <div className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
+          
+          {/* Front of Card - Verse */}
+          <div className="absolute inset-0 w-full h-full backface-hidden">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 md:p-6 shadow-lg border border-blue-100 dark:border-gray-600 h-full flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <h3 className="text-sm md:text-base font-semibold text-blue-900 dark:text-white">
+                    Verse of the Day
+                  </h3>
+                </div>
               </div>
-            )}
+
+              {/* Verse Text */}
+              <div className="flex-1 flex flex-col justify-center">
+                <p className="text-base md:text-lg text-gray-800 dark:text-gray-100 italic leading-relaxed text-center mb-4">
+                  "{verse.verse_text}"
+                </p>
+                <p className="text-sm md:text-base text-blue-700 dark:text-blue-300 font-medium text-center">
+                  — {verse.verse_reference}
+                </p>
+              </div>
+
+              {/* Tap hint */}
+              <div className="text-center mt-4">
+                <button
+                  onClick={() => setIsFlipped(true)}
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors bg-blue-100 dark:bg-blue-900 px-3 py-2 rounded-full"
+                >
+                  Tap to see reflection
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Back of Card - Reflection */}
+          <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-800 dark:to-purple-700 rounded-xl p-4 md:p-6 shadow-lg border border-purple-100 dark:border-purple-600 h-full flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clipRule="evenodd" />
+                  </svg>
+                  <h3 className="text-sm md:text-base font-semibold text-purple-900 dark:text-white">
+                    Catholic Reflection
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsFlipped(false)}
+                  className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors"
+                  aria-label="Back to verse"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Reflection Content */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="mb-3">
+                  <p className="text-xs md:text-sm text-purple-700 dark:text-purple-300 font-medium mb-2">
+                    {verse.verse_reference}
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {verse.explanation}
+                  </p>
+                  
+                  {verse.catechism_references && verse.catechism_references.length > 0 && (
+                    <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">
+                      <p className="text-xs md:text-sm text-purple-700 dark:text-purple-300">
+                        <span className="font-medium">Related Catechism: </span>
+                        {verse.catechism_references.join(', ')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Expand hint for mobile */}
-        {!expanded && (
-          <div className="text-center mt-2">
-            <span className="text-xs text-blue-600 dark:text-blue-400">
-              Tap to see reflection
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );
