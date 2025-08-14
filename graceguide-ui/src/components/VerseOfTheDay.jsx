@@ -4,21 +4,24 @@ import React, { useState, useEffect } from 'react';
 function formatReflectionText(text) {
   if (!text) return [];
   
-  // Remove numbered list markers and split into sections
-  const sections = text
-    .replace(/\d+\.\s*\*\*([^:]+):\*\*/g, '|SECTION|$1:')
-    .split('|SECTION|')
-    .filter(s => s.trim());
+  // Try to parse numbered sections with bold headers
+  const pattern = /\d+\.\s*\*\*([^:]+):\*\*\s*([^0-9]+(?:\d(?!\.\s*\*\*)[^0-9]*)*)/g;
+  const sections = [];
+  let match;
   
-  return sections.map(section => {
-    const colonIndex = section.indexOf(':');
-    if (colonIndex === -1) return { title: '', content: section.trim() };
-    
-    const title = section.substring(0, colonIndex).trim();
-    const content = section.substring(colonIndex + 1).trim();
-    
-    return { title, content };
-  });
+  while ((match = pattern.exec(text)) !== null) {
+    sections.push({
+      title: match[1].trim(),
+      content: match[2].trim()
+    });
+  }
+  
+  // If no sections found, return the text as is
+  if (sections.length === 0) {
+    return [{ title: '', content: text }];
+  }
+  
+  return sections;
 }
 
 export default function VerseOfTheDay({ isVisible = true }) {
@@ -56,8 +59,8 @@ export default function VerseOfTheDay({ isVisible = true }) {
         <div className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
           
           {/* Front of Card - Verse */}
-          <div className="absolute inset-0 w-full h-full backface-hidden">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 md:p-6 shadow-lg border border-blue-100 dark:border-gray-600 h-full flex flex-col">
+          <div className="absolute inset-0 w-full h-full backface-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-lg border border-blue-100 dark:border-gray-600">
+            <div className="h-full flex flex-col p-4 md:p-6">
               {/* Header */}
               <div className="flex items-center gap-2 mb-3">
                 <svg className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
@@ -93,16 +96,8 @@ export default function VerseOfTheDay({ isVisible = true }) {
           {/* Back of Card - Reflection */}
           <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-800 dark:to-purple-700 rounded-xl p-4 md:p-6 shadow-lg border border-purple-100 dark:border-purple-600 h-full flex flex-col overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 md:w-6 md:h-6 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clipRule="evenodd" />
-                  </svg>
-                  <h3 className="text-sm md:text-base font-semibold text-purple-900 dark:text-white">
-                    Catholic Reflection
-                  </h3>
-                </div>
+              {/* Back button only */}
+              <div className="flex justify-end mb-3">
                 <button
                   onClick={() => setIsFlipped(false)}
                   className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors"
@@ -127,33 +122,31 @@ export default function VerseOfTheDay({ isVisible = true }) {
                 </div>
                 
                 {/* Formatted reflection sections */}
-                <div className="flex-1 space-y-2">
-                  {(() => {
-                    const sections = formatReflectionText(verse.explanation);
+                <div className="flex-1 space-y-3">
+                  {formatReflectionText(verse.explanation).map((section, index) => {
+                    // Skip empty sections
+                    if (!section.content && !section.title) return null;
                     
-                    // If no sections parsed, show as single paragraph
-                    if (sections.length === 0 || (sections.length === 1 && !sections[0].title)) {
-                      return (
-                        <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                          {verse.explanation}
-                        </p>
-                      );
-                    }
-                    
-                    // Show formatted sections
-                    return sections.map((section, index) => (
-                      <div key={index} className="">
+                    return (
+                      <div key={index}>
                         {section.title && (
-                          <h4 className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1">
+                          <h4 className="text-sm font-semibold text-purple-700 dark:text-purple-300 mb-1">
                             {section.title}
                           </h4>
                         )}
-                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
-                          {section.content}
+                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {section.content || verse.explanation}
                         </p>
                       </div>
-                    ));
-                  })()}
+                    );
+                  })}
+                  
+                  {/* Fallback if no sections parsed */}
+                  {formatReflectionText(verse.explanation).length === 0 && (
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {verse.explanation}
+                    </p>
+                  )}
                 </div>
                 
                 {/* Catechism references - more compact */}
