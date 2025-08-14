@@ -55,12 +55,12 @@ export default function VerseOfTheDay({ isVisible = true }) {
 
   return (
     <div className="w-full max-w-xl md:max-w-3xl lg:max-w-4xl mx-auto mt-4 mb-6 animate-fadeIn">
-      <div className="relative perspective-1000 min-h-[28rem] md:min-h-[32rem]">
+      <div className="relative perspective-1000 h-[28rem] md:h-[32rem]">
         <div className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
           
           {/* Front of Card - Verse */}
-          <div className="absolute inset-0 w-full h-full backface-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-lg border border-blue-100 dark:border-gray-600">
-            <div className="h-full flex flex-col p-4 md:p-6">
+          <div className="absolute inset-0 w-full h-full backface-hidden">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-lg border border-blue-100 dark:border-gray-600 h-full flex flex-col p-4 md:p-6">
               {/* Header */}
               <div className="flex items-center gap-2 mb-3">
                 <svg className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
@@ -95,7 +95,7 @@ export default function VerseOfTheDay({ isVisible = true }) {
 
           {/* Back of Card - Reflection */}
           <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-800 dark:to-purple-700 rounded-xl p-4 md:p-6 shadow-lg border border-purple-100 dark:border-purple-600 h-full flex flex-col overflow-hidden">
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-800 dark:to-purple-700 rounded-xl shadow-lg border border-purple-100 dark:border-purple-600 h-full flex flex-col p-4 md:p-6">
               {/* Back button only */}
               <div className="flex justify-end mb-3">
                 <button
@@ -121,32 +121,34 @@ export default function VerseOfTheDay({ isVisible = true }) {
                   </p>
                 </div>
                 
-                {/* Formatted reflection sections */}
-                <div className="flex-1 space-y-3">
-                  {formatReflectionText(verse.explanation).map((section, index) => {
-                    // Skip empty sections
-                    if (!section.content && !section.title) return null;
+                {/* Reflection text */}
+                <div className="flex-1 space-y-3 overflow-y-auto">
+                  {(() => {
+                    const sections = formatReflectionText(verse.explanation);
                     
+                    // If parsing found sections with titles
+                    if (sections.length > 0 && sections.some(s => s.title)) {
+                      return sections.map((section, index) => (
+                        <div key={index}>
+                          {section.title && (
+                            <h4 className="text-sm font-semibold text-purple-700 dark:text-purple-300 mb-1">
+                              {section.title}
+                            </h4>
+                          )}
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                            {section.content}
+                          </p>
+                        </div>
+                      ));
+                    }
+                    
+                    // Otherwise show as single paragraph
                     return (
-                      <div key={index}>
-                        {section.title && (
-                          <h4 className="text-sm font-semibold text-purple-700 dark:text-purple-300 mb-1">
-                            {section.title}
-                          </h4>
-                        )}
-                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                          {section.content || verse.explanation}
-                        </p>
-                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {verse.explanation}
+                      </p>
                     );
-                  })}
-                  
-                  {/* Fallback if no sections parsed */}
-                  {formatReflectionText(verse.explanation).length === 0 && (
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {verse.explanation}
-                    </p>
-                  )}
+                  })()}
                 </div>
                 
                 {/* Catechism references - more compact */}
