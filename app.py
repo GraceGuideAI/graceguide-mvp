@@ -194,8 +194,6 @@ def signin(request: AuthRequest):
 class VerseOfTheDayResponse(BaseModel):
     verse_text: str
     verse_reference: str
-    explanation: str
-    catechism_references: list[str]
 
 # Load meaningful verses for daily selection
 MEANINGFUL_VERSES = [
@@ -223,78 +221,41 @@ verse_of_day_cache = {}
 def get_verse_of_the_day():
     # Use current date as key for consistent daily verse
     today = datetime.utcnow().date().isoformat()
-    
+
     # Check cache first
     if today in verse_of_day_cache:
         return VerseOfTheDayResponse(**verse_of_day_cache[today])
-    
+
     # Select verse based on day of year for consistency
     day_of_year = datetime.utcnow().timetuple().tm_yday
     verse_index = day_of_year % len(MEANINGFUL_VERSES)
     selected_verse = MEANINGFUL_VERSES[verse_index]
-    
+
     # Get verse text from preloaded Bible data
     try:
-        verse_text = BIBLE_DATA.get(selected_verse["book"], {}).get(
-            selected_verse["chapter"], {}
-        ).get(selected_verse["verse"], "Verse not found")
+        verse_text = (
+            BIBLE_DATA.get(selected_verse["book"], {})
+            .get(selected_verse["chapter"], {})
+            .get(selected_verse["verse"], "Verse not found")
+        )
 
         verse_reference = f"{selected_verse['book']} {selected_verse['chapter']}:{selected_verse['verse']}"
-        
-        # Generate explanation using the LLM with Catechism context
-        prompt = f"""Given this Bible verse: "{verse_text}" ({verse_reference})
 
-Please provide a brief Catholic explanation (2-3 sentences) that:
-1. Explains the spiritual meaning of this verse
-2. Connects it to Catholic teaching from the Catechism
-3. Offers a practical application for daily life
-
-Keep the explanation concise and accessible."""
-
-        # Search for relevant Catechism passages
-        theme_filter = {"source": "CCC"}
-        catechism_retriever = vectorstore.as_retriever(
-            search_kwargs={"k": 3, "filter": theme_filter}
-        )
-        
-        # Get relevant CCC passages based on the verse theme
-        search_query = f"{selected_verse['theme']} {verse_text[:50]}"
-        relevant_docs = catechism_retriever.get_relevant_documents(search_query)
-        
-        # Extract CCC references
-        catechism_refs = []
-        for doc in relevant_docs:
-            ref = doc.metadata.get("reference", "")
-            if ref and ref not in catechism_refs:
-                catechism_refs.append(ref)
-        
-        # Generate explanation
-        try:
-            response = llm.invoke(prompt)
-            explanation = str(response.content).strip() if hasattr(response, 'content') else str(response).strip()
-        except Exception as e:
-            explanation = "This verse reminds us of God's infinite love and mercy. The Catechism teaches us that Scripture is the living Word of God, speaking to us today. Let us meditate on this verse and apply its wisdom to our daily lives."
-        
-        # Prepare response
         result = {
             "verse_text": verse_text,
             "verse_reference": verse_reference,
-            "explanation": explanation,
-            "catechism_references": catechism_refs[:2]  # Limit to 2 references
         }
-        
+
         # Cache the result
         verse_of_day_cache[today] = result
-        
+
         return VerseOfTheDayResponse(**result)
-        
+
     except Exception as e:
         # Fallback response
         return VerseOfTheDayResponse(
             verse_text="For God so loved the world, as to give his only begotten Son: that whosoever believeth in him may not perish, but may have life everlasting.",
             verse_reference="John 3:16",
-            explanation="This verse encapsulates the heart of the Gospel - God's infinite love for humanity. The Catechism teaches that God's love is the source of our salvation. Today, let us reflect on how we can share this divine love with others.",
-            catechism_references=["CCC 457", "CCC 458"]
         )
 
 # 7) /qa endpoint
