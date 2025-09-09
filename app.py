@@ -12,6 +12,7 @@ import secrets
 import jwt
 from datetime import datetime, timedelta
 import random
+import logging
 
 # JWT secret key
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
@@ -39,6 +40,14 @@ if CACHE_FILE.exists():
         cache = {}
 else:
     cache = {}
+
+# Load Bible data once at startup
+try:
+    with open("EntireBible-DR.json", "r", encoding="utf-8") as f:
+        BIBLE_DATA = json.load(f)
+except Exception as e:
+    logging.error("Failed to load Bible data: %s", e)
+    BIBLE_DATA = {}
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
@@ -217,15 +226,12 @@ def get_verse_of_the_day():
     verse_index = day_of_year % len(MEANINGFUL_VERSES)
     selected_verse = MEANINGFUL_VERSES[verse_index]
     
-    # Load Bible data to get the verse text
+    # Get verse text from preloaded Bible data
     try:
-        with open("EntireBible-DR.json", "r", encoding="utf-8") as f:
-            bible_data = json.load(f)
-        
-        verse_text = bible_data.get(selected_verse["book"], {}).get(
+        verse_text = BIBLE_DATA.get(selected_verse["book"], {}).get(
             selected_verse["chapter"], {}
         ).get(selected_verse["verse"], "Verse not found")
-        
+
         verse_reference = f"{selected_verse['book']} {selected_verse['chapter']}:{selected_verse['verse']}"
         
         # Generate explanation using the LLM with Catechism context
