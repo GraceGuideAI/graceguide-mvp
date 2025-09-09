@@ -12,6 +12,7 @@ import secrets
 import jwt
 from datetime import datetime, timedelta
 import random
+import logging
 
 # JWT secret key
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
@@ -139,8 +140,10 @@ def save_users():
     try:
         with USERS_FILE.open("w") as f:
             json.dump(users, f)
-    except Exception:
-        pass
+        return True
+    except Exception as e:
+        logging.error("Failed to save users: %s", e)
+        return False
 
 # Authentication endpoints
 @app.post("/auth/signup", response_model=AuthResponse)
@@ -156,7 +159,8 @@ def signup(request: AuthRequest):
         "password_hash": hash_password(request.password),
         "created_at": datetime.utcnow().isoformat()
     }
-    save_users()
+    if not save_users():
+        raise HTTPException(status_code=500, detail="Failed to save user data")
     
     # Create token
     token = create_jwt_token(email)
