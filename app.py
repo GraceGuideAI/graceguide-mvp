@@ -14,6 +14,13 @@ from datetime import datetime, timedelta
 import random
 import logging
 
+# Fallback verse used when Bible data is missing or incomplete
+FALLBACK_VERSE_REFERENCE = "John 3:16"
+FALLBACK_VERSE_TEXT = (
+    "For God so loved the world, as to give his only begotten Son: "
+    "that whosoever believeth in him may not perish, but may have life everlasting."
+)
+
 # JWT secret key
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
 JWT_ALGORITHM = "HS256"
@@ -41,13 +48,18 @@ if CACHE_FILE.exists():
 else:
     cache = {}
 
-# Load Bible data once at startup
+# Load Bible data once at startup. If loading fails or returns empty,
+# a fallback verse (John 3:16) is inserted so the API remains functional.
 try:
     with open("EntireBible-DR.json", "r", encoding="utf-8") as f:
         BIBLE_DATA = json.load(f)
 except Exception as e:
     logging.error("Failed to load Bible data: %s", e)
     BIBLE_DATA = {}
+
+if not BIBLE_DATA:
+    logging.error("Bible data is empty; using fallback verse %s", FALLBACK_VERSE_REFERENCE)
+    BIBLE_DATA = {"John": {"3": {"16": FALLBACK_VERSE_TEXT}}}
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
@@ -219,6 +231,11 @@ verse_of_day_cache = {}
 
 @app.get("/verse-of-the-day", response_model=VerseOfTheDayResponse)
 def get_verse_of_the_day():
+    """Return a consistent daily verse.
+
+    If the desired verse is missing from the loaded data, a fallback verse
+    (John 3:16) is returned instead and the missing reference is logged.
+    """
     # Use current date as key for consistent daily verse
     today = datetime.utcnow().date().isoformat()
 
@@ -231,20 +248,28 @@ def get_verse_of_the_day():
     verse_index = day_of_year % len(MEANINGFUL_VERSES)
     selected_verse = MEANINGFUL_VERSES[verse_index]
 
-    # Get verse text from preloaded Bible data
     try:
+        book_data = BIBLE_DATA.get(selected_verse["book"])
+        chapter_data = book_data.get(selected_verse["chapter"]) if book_data else None
         verse_text = (
-            BIBLE_DATA.get(selected_verse["book"], {})
-            .get(selected_verse["chapter"], {})
-            .get(selected_verse["verse"], "Verse not found")
+            chapter_data.get(selected_verse["verse"]) if chapter_data else None
         )
 
-        verse_reference = f"{selected_verse['book']} {selected_verse['chapter']}:{selected_verse['verse']}"
+        if verse_text is None:
+            missing = f"{selected_verse['book']} {selected_verse['chapter']}:{selected_verse['verse']}"
+            logging.warning(
+                "Missing verse %s; using fallback verse %s.",
+                missing,
+                FALLBACK_VERSE_REFERENCE,
+            )
+            verse_text = FALLBACK_VERSE_TEXT
+            verse_reference = FALLBACK_VERSE_REFERENCE
+        else:
+            verse_reference = (
+                f"{selected_verse['book']} {selected_verse['chapter']}:{selected_verse['verse']}"
+            )
 
-        result = {
-            "verse_text": verse_text,
-            "verse_reference": verse_reference,
-        }
+        result = {"verse_text": verse_text, "verse_reference": verse_reference}
 
         # Cache the result
         verse_of_day_cache[today] = result
@@ -252,10 +277,10 @@ def get_verse_of_the_day():
         return VerseOfTheDayResponse(**result)
 
     except Exception as e:
-        # Fallback response
+        logging.error("Unexpected error retrieving verse of the day: %s", e)
         return VerseOfTheDayResponse(
-            verse_text="For God so loved the world, as to give his only begotten Son: that whosoever believeth in him may not perish, but may have life everlasting.",
-            verse_reference="John 3:16",
+            verse_text=FALLBACK_VERSE_TEXT,
+            verse_reference=FALLBACK_VERSE_REFERENCE,
         )
 
 # 7) /qa endpoint
