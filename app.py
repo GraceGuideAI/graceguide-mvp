@@ -7,7 +7,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 import json
 from pathlib import Path
-import hashlib
+import bcrypt
 import secrets
 import jwt
 from datetime import datetime, timedelta
@@ -118,8 +118,12 @@ class AuthResponse(BaseModel):
     email: str
 
 def hash_password(password: str) -> str:
-    """Hash password with salt"""
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Hash password using bcrypt with a generated salt"""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def verify_password(password: str, password_hash: str) -> bool:
+    """Verify a password against an existing hash"""
+    return bcrypt.checkpw(password.encode(), password_hash.encode())
 
 def create_jwt_token(email: str) -> str:
     """Create JWT token for user"""
@@ -167,7 +171,7 @@ def signin(request: AuthRequest):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # Verify password
-    if users[email]["password_hash"] != hash_password(request.password):
+    if not verify_password(request.password, users[email]["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # Create token
