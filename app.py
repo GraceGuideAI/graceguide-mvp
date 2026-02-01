@@ -78,7 +78,15 @@ if not api_key:
         "OPENAI_API_KEY environment variable not set. Please provide your OpenAI API key."
     )
 
-# 2) Load the Chroma vector store
+# 2) Load or build the Chroma vector store
+from pathlib import Path
+db_path = Path("veritas_ai_chroma_db")
+if not db_path.exists():
+    logging.info("ChromaDB not found, building from scratch...")
+    import subprocess
+    subprocess.run(["python", "build_db.py"], check=True)
+    logging.info("ChromaDB built successfully")
+
 vectorstore = Chroma(
     persist_directory="veritas_ai_chroma_db",
     embedding_function=OpenAIEmbeddings(openai_api_key=api_key)

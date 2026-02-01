@@ -2,9 +2,9 @@
 
 import os
 import json
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma 
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
+from langchain_chroma import Chroma 
 
 # 1) Load the JSON files (they live in the same folder as this script)
 with open("EntireBible-DR.json", "r", encoding="utf-8") as f:
