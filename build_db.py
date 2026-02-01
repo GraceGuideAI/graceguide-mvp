@@ -71,6 +71,6 @@ db = Chroma.from_texts(
     metadatas=metadatas,
     persist_directory="veritas_ai_chroma_db"
 )
-db.persist()
+# ChromaDB now auto-persists, no need to call db.persist()
 
 print("✅ Chroma DB built at ./veritas_ai_chroma_db")
