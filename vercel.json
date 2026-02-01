@@ -1,0 +1,4 @@
+{
+  "buildCommand": "cd graceguide-ui && npm install && npm run build",
+  "outputDirectory": "graceguide-ui/dist"
+}

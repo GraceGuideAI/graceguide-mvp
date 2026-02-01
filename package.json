@@ -1,0 +1,17 @@
+{
+  "name": "graceguide-mvp",
+  "version": "1.0.0",
+  "description": "This project provides a small FastAPI service powered by LangChain with a Vite/Vanilla JS frontend. The service exposes a `/qa` endpoint for question answering and a `/subscribe` endpoint for email sign‑ups.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "html2canvas": "^1.4.1",
+    "puppeteer": "^24.10.1"
+  }
+}

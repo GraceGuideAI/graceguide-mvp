@@ -1,0 +1,9 @@
+veritas_ai_chroma_db/
+__pycache__/
+*.exe
+feedback.log
+node_modules/
+users.json
+qa_cache.json
+.env
+.vercel

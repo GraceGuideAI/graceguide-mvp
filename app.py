@@ -1,0 +1,531 @@
+from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+from enum import Enum
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import os
+import json
+from pathlib import Path
+import bcrypt
+import secrets
+import jwt
+from datetime import datetime, timedelta
+import random
+import logging
+
+# Fallback verse used when Bible data is missing or incomplete
+FALLBACK_VERSE_REFERENCE = "John 3:16"
+FALLBACK_VERSE_TEXT = (
+    "For God so loved the world, as to give his only begotten Son: "
+    "that whosoever believeth in him may not perish, but may have life everlasting."
+)
+
+# JWT secret key
+JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_HOURS = 24 * 30  # 30 days
+
+# RevenueCat configuration
+REVENUECAT_WEBHOOK_SECRET = os.getenv("REVENUECAT_WEBHOOK_SECRET", "")
+REVENUECAT_ENTITLEMENT_ID = os.getenv("REVENUECAT_ENTITLEMENT_ID", "premium")
+
+# User storage file
+USERS_FILE = Path("users.json")
+if USERS_FILE.exists():
+    try:
+        with USERS_FILE.open("r") as f:
+            users = json.load(f)
+    except Exception:
+        users = {}
+else:
+    users = {}
+
+# Cache file setup
+CACHE_FILE = Path("qa_cache.json")
+if CACHE_FILE.exists():
+    try:
+        with CACHE_FILE.open("r") as f:
+            cache = json.load(f)
+    except Exception:
+        cache = {}
+else:
+    cache = {}
+
+# Load Bible data once at startup. If loading fails or returns empty,
+# a fallback verse (John 3:16) is inserted so the API remains functional.
+try:
+    with open("EntireBible-DR.json", "r", encoding="utf-8") as f:
+        BIBLE_DATA = json.load(f)
+except Exception as e:
+    logging.error("Failed to load Bible data: %s", e)
+    BIBLE_DATA = {}
+
+if not BIBLE_DATA:
+    logging.error("Bible data is empty; using fallback verse %s", FALLBACK_VERSE_REFERENCE)
+    BIBLE_DATA = {"John": {"3": {"16": FALLBACK_VERSE_TEXT}}}
+
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_chroma import Chroma
+from langchain.chains import RetrievalQA
+from templates import prompt_for_mode
+import metrics
+
+# 1) Read API key
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise RuntimeError(
+        "OPENAI_API_KEY environment variable not set. Please provide your OpenAI API key."
+    )
+
+# 2) Load the Chroma vector store
+vectorstore = Chroma(
+    persist_directory="veritas_ai_chroma_db",
+    embedding_function=OpenAIEmbeddings(openai_api_key=api_key)
+)
+
+# 3) Build retriever
+retriever = vectorstore.as_retriever(search_kwargs={"k": 5})  # Reduced from 8 to 5 for faster processing
+
+# 4) Initialize the Chat model
+llm = ChatOpenAI(
+    model_name="gpt-4o-mini",  # Much faster than gpt-4-turbo, still very capable
+    temperature=0.0,
+    openai_api_key=api_key,
+    max_tokens=1500,  # Limit response length for faster processing
+    request_timeout=30  # 30 second timeout
+)
+
+# 5) Create FastAPI app and enable CORS
+# Build CORS origins from environment variables for flexibility
+DEFAULT_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Add Vercel frontend domain from env var
+VERCEL_FRONTEND_URL = os.getenv("VERCEL_FRONTEND_URL", "")
+CUSTOM_DOMAINS = os.getenv("CORS_ORIGINS", "")  # Comma-separated list
+
+cors_origins = DEFAULT_ORIGINS.copy()
+if VERCEL_FRONTEND_URL:
+    cors_origins.append(VERCEL_FRONTEND_URL)
+if CUSTOM_DOMAINS:
+    cors_origins.extend([d.strip() for d in CUSTOM_DOMAINS.split(",") if d.strip()])
+
+app = FastAPI(title="GraceGuide AI API", version="1.0.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
+
+security = HTTPBasic()
+admin_password = os.getenv("ADMIN_PASSWORD")
+
+# 6) Request and response models
+class SourceMode(str, Enum):
+    bible = "bible"
+    both = "both"
+    catechism = "catechism"
+
+class QARequest(BaseModel):
+    question: str
+    mode: SourceMode = SourceMode.both
+
+class QAResponse(BaseModel):
+    answer: str
+    sources: list[str]
+
+class SubscribeRequest(BaseModel):
+    email: str
+
+class LogEvent(BaseModel):
+    event: str
+
+class AuthRequest(BaseModel):
+    email: str
+    password: str
+
+class AuthResponse(BaseModel):
+    token: str
+    email: str
+
+def hash_password(password: str) -> str:
+    """Hash password using bcrypt with a generated salt"""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def verify_password(password: str, password_hash: str) -> bool:
+    """Verify a password against an existing hash"""
+    return bcrypt.checkpw(password.encode(), password_hash.encode())
+
+def create_jwt_token(email: str) -> str:
+    """Create JWT token for user"""
+    expiration = datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+    payload = {
+        "email": email,
+        "exp": expiration
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+def save_users():
+    """Save users to file"""
+    try:
+        with USERS_FILE.open("w") as f:
+            json.dump(users, f)
+        return True
+    except Exception as e:
+        logging.error("Failed to save users: %s", e)
+        return False
+
+# Authentication endpoints
+@app.post("/auth/signup", response_model=AuthResponse)
+def signup(request: AuthRequest):
+    email = request.email.lower().strip()
+    
+    # Check if user already exists
+    if email in users:
+        raise HTTPException(status_code=400, detail="User already exists")
+    
+    # Create new user
+    users[email] = {
+        "password_hash": hash_password(request.password),
+        "created_at": datetime.utcnow().isoformat()
+    }
+    if not save_users():
+        raise HTTPException(status_code=500, detail="Failed to save user data")
+    
+    # Create token
+    token = create_jwt_token(email)
+    return AuthResponse(token=token, email=email)
+
+@app.post("/auth/signin", response_model=AuthResponse)
+def signin(request: AuthRequest):
+    email = request.email.lower().strip()
+    
+    # Check if user exists
+    if email not in users:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Verify password
+    if not verify_password(request.password, users[email]["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Create token
+    token = create_jwt_token(email)
+    return AuthResponse(token=token, email=email)
+
+# Verse of the Day models
+class VerseOfTheDayResponse(BaseModel):
+    verse_text: str
+    verse_reference: str
+
+# Load meaningful verses for daily selection
+MEANINGFUL_VERSES = [
+    {"book": "Matthew", "chapter": "5", "verse": "8", "theme": "purity"},
+    {"book": "John", "chapter": "3", "verse": "16", "theme": "love"},
+    {"book": "Psalms", "chapter": "23", "verse": "1", "theme": "trust"},
+    {"book": "Romans", "chapter": "8", "verse": "28", "theme": "providence"},
+    {"book": "1 Corinthians", "chapter": "13", "verse": "13", "theme": "love"},
+    {"book": "Philippians", "chapter": "4", "verse": "13", "theme": "strength"},
+    {"book": "Isaiah", "chapter": "40", "verse": "31", "theme": "hope"},
+    {"book": "Proverbs", "chapter": "3", "verse": "5", "theme": "trust"},
+    {"book": "Matthew", "chapter": "6", "verse": "33", "theme": "priorities"},
+    {"book": "James", "chapter": "1", "verse": "5", "theme": "wisdom"},
+    {"book": "Ephesians", "chapter": "2", "verse": "8", "theme": "grace"},
+    {"book": "Hebrews", "chapter": "11", "verse": "1", "theme": "faith"},
+    {"book": "Jeremiah", "chapter": "29", "verse": "11", "theme": "hope"},
+    {"book": "Matthew", "chapter": "11", "verse": "28", "theme": "rest"},
+    {"book": "John", "chapter": "14", "verse": "6", "theme": "truth"},
+]
+
+# Cache for verse of the day
+verse_of_day_cache = {}
+
+@app.get("/verse-of-the-day", response_model=VerseOfTheDayResponse)
+def get_verse_of_the_day():
+    """Return a consistent daily verse.
+
+    If the desired verse is missing from the loaded data, a fallback verse
+    (John 3:16) is returned instead and the missing reference is logged.
+    """
+    # Use current date as key for consistent daily verse
+    today = datetime.utcnow().date().isoformat()
+
+    # Check cache first
+    if today in verse_of_day_cache:
+        return VerseOfTheDayResponse(**verse_of_day_cache[today])
+
+    # Select verse based on day of year for consistency
+    day_of_year = datetime.utcnow().timetuple().tm_yday
+    verse_index = day_of_year % len(MEANINGFUL_VERSES)
+    selected_verse = MEANINGFUL_VERSES[verse_index]
+
+    try:
+        book_data = BIBLE_DATA.get(selected_verse["book"])
+        chapter_data = book_data.get(selected_verse["chapter"]) if book_data else None
+        verse_text = (
+            chapter_data.get(selected_verse["verse"]) if chapter_data else None
+        )
+
+        if verse_text is None:
+            missing = f"{selected_verse['book']} {selected_verse['chapter']}:{selected_verse['verse']}"
+            logging.warning(
+                "Missing verse %s; using fallback verse %s.",
+                missing,
+                FALLBACK_VERSE_REFERENCE,
+            )
+            verse_text = FALLBACK_VERSE_TEXT
+            verse_reference = FALLBACK_VERSE_REFERENCE
+        else:
+            verse_reference = (
+                f"{selected_verse['book']} {selected_verse['chapter']}:{selected_verse['verse']}"
+            )
+
+        result = {"verse_text": verse_text, "verse_reference": verse_reference}
+
+        # Cache the result
+        verse_of_day_cache[today] = result
+
+        return VerseOfTheDayResponse(**result)
+
+    except Exception as e:
+        logging.error("Unexpected error retrieving verse of the day: %s", e)
+        return VerseOfTheDayResponse(
+            verse_text=FALLBACK_VERSE_TEXT,
+            verse_reference=FALLBACK_VERSE_REFERENCE,
+        )
+
+# 7) /qa endpoint
+@app.post("/qa", response_model=QAResponse)
+def qa(request: QARequest):
+    key = f"{request.mode.value}|{request.question.strip()}"
+    cached = cache.get(key)
+    if cached:
+        return QAResponse(**cached)
+    # Build retriever with optional source filter
+    filter_opt = None
+    if request.mode == SourceMode.bible:
+        filter_opt = {"source": "Bible"}
+    elif request.mode == SourceMode.catechism:
+        filter_opt = {"source": "CCC"}
+
+    local_retriever = vectorstore.as_retriever(
+        search_kwargs={"k": 5, **({"filter": filter_opt} if filter_opt else {})}  # Reduced from 8 to 5
+    )
+
+    chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=local_retriever,
+        chain_type_kwargs={"prompt": prompt_for_mode(request.mode.value)},
+    )
+
+    try:
+        res = chain.invoke({"query": request.question})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    raw = res["result"].strip()
+
+    if "=== Sources ===" in raw:
+        answer_text, sources_block = raw.split("=== Sources ===", 1)
+    else:
+        answer_text, sources_block = raw, ""
+
+    sources = [
+        line[2:].strip()
+        for line in sources_block.splitlines()
+        if line.strip().startswith("- ")
+    ]
+
+    answer = answer_text.strip()
+    resp = {"answer": answer, "sources": sources}
+    cache[key] = resp
+    try:
+        with CACHE_FILE.open("w") as f:
+            json.dump(cache, f)
+    except Exception:
+        pass
+    return QAResponse(**resp)
+
+# 8) /subscribe endpoint to capture emails
+@app.post("/subscribe")
+def subscribe(req: SubscribeRequest):
+    import csv
+    import hashlib
+    import requests
+
+    email = req.email.strip().lower()
+    csv_fname = "subscribers.csv"
+
+    def ensure_csv():
+        if not os.path.isfile(csv_fname):
+            with open(csv_fname, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["email"])
+
+    def email_in_csv() -> bool:
+        if not os.path.isfile(csv_fname):
+            return False
+        with open(csv_fname, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get("email", "").strip().lower() == email:
+                    return True
+        return False
+
+    mc_key = os.getenv("MAILCHIMP_API_KEY")
+    mc_server = os.getenv("MAILCHIMP_SERVER_PREFIX")
+    mc_list = os.getenv("MAILCHIMP_LIST_ID")
+
+    if mc_key and mc_server and mc_list:
+        auth = ("anystring", mc_key)
+        member_hash = hashlib.md5(email.encode()).hexdigest()
+        base_url = f"https://{mc_server}.api.mailchimp.com/3.0"
+        member_url = f"{base_url}/lists/{mc_list}/members/{member_hash}"
+        try:
+            r = requests.get(member_url, auth=auth, timeout=10)
+            if r.status_code == 200:
+                return {"status": "already_subscribed"}
+            if r.status_code != 404:
+                raise Exception(f"GET {r.status_code}: {r.text}")
+
+            data = {"email_address": email, "status": "subscribed"}
+            r = requests.put(member_url, auth=auth, json=data, timeout=10)
+            if 200 <= r.status_code < 300:
+                return {"status": "ok"}
+            raise Exception(f"PUT {r.status_code}: {r.text}")
+        except Exception as e:
+            print(f"Mailchimp error: {e}")
+
+    ensure_csv()
+    if email_in_csv():
+        return {"status": "already_subscribed"}
+    with open(csv_fname, "a", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([email])
+    return {"status": "ok"}
+
+# 9) /metrics endpoint with basic auth
+@app.get("/metrics")
+def get_metrics(credentials: HTTPBasicCredentials = Depends(security)):
+    if not admin_password:
+        raise HTTPException(status_code=500, detail="ADMIN_PASSWORD not set")
+    import secrets
+    correct = credentials.username == "admin" and secrets.compare_digest(credentials.password, admin_password)
+    if not correct:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return metrics.get_counts()
+
+# 10) /log_event endpoint to record frontend events
+@app.post("/log_event")
+def log_event(evt: LogEvent):
+    metrics.log_event(evt.event)
+    return {"status": "ok"}
+
+# 11) RevenueCat webhook endpoint for subscription events
+class RevenueCatEvent(BaseModel):
+    event: dict
+
+@app.post("/webhooks/revenuecat")
+async def revenuecat_webhook(request: Request):
+    """
+    Handle RevenueCat webhook events for subscription lifecycle management.
+    Events: INITIAL_PURCHASE, RENEWAL, CANCELLATION, EXPIRATION, etc.
+    """
+    import hashlib
+    import hmac
+    
+    body = await request.body()
+    
+    # Verify webhook signature if secret is configured
+    if REVENUECAT_WEBHOOK_SECRET:
+        signature = request.headers.get("X-RevenueCat-Signature", "")
+        expected = hmac.new(
+            REVENUECAT_WEBHOOK_SECRET.encode(),
+            body,
+            hashlib.sha256
+        ).hexdigest()
+        if not hmac.compare_digest(signature, expected):
+            raise HTTPException(status_code=401, detail="Invalid signature")
+    
+    try:
+        payload = json.loads(body)
+        event_type = payload.get("event", {}).get("type", "")
+        event = payload.get("event", {})
+        
+        # Log the event for tracking
+        app_user_id = event.get("app_user_id", "unknown")
+        product_id = event.get("product_id", "unknown")
+        
+        logging.info(f"RevenueCat event: {event_type} for user {app_user_id}, product {product_id}")
+        metrics.log_event(f"revenuecat_{event_type}")
+        
+        # Handle different event types
+        if event_type == "INITIAL_PURCHASE":
+            # New subscription - grant premium access
+            logging.info(f"New premium subscription: {app_user_id}")
+            # Could update user record in database here
+            
+        elif event_type == "RENEWAL":
+            # Subscription renewed
+            logging.info(f"Subscription renewed: {app_user_id}")
+            
+        elif event_type == "CANCELLATION":
+            # User cancelled - will expire at period end
+            logging.info(f"Subscription cancelled: {app_user_id}")
+            
+        elif event_type == "EXPIRATION":
+            # Subscription expired - revoke premium access
+            logging.info(f"Subscription expired: {app_user_id}")
+            # Could update user record to remove premium here
+            
+        elif event_type == "REFUND":
+            # User refunded - revoke access immediately
+            logging.info(f"Subscription refunded: {app_user_id}")
+            
+        return {"status": "ok"}
+        
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+    except Exception as e:
+        logging.error(f"RevenueCat webhook error: {e}")
+        raise HTTPException(status_code=500, detail="Webhook processing failed")
+
+# 12) Health check endpoint for monitoring
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+# 13) (optional) serve your UI if it exists
+ui_path = "graceguide-ui/dist"
+if os.path.isdir(ui_path):
+    app.mount("/static", StaticFiles(directory=ui_path, html=False), name="static")
+
+    from fastapi.responses import FileResponse
+
+    @app.get("/", include_in_schema=False)
+    def landing_page():
+        return FileResponse(os.path.join(ui_path, "index.html"))
+
+    @app.get("/app", include_in_schema=False)
+    def qa_page():
+        return FileResponse(os.path.join(ui_path, "index.html"))
+else:
+    # avoids startup crash when dist folder is missing
+    print(f"Static UI not found at {ui_path}, skipping mount")
+
+# To run locally:
+# uvicorn app:app --reload --port 8000

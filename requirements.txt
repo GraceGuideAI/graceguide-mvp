@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+langchain
+langchain-community
+chromadb
+openai
+tiktoken
+langchain-openai
+langchain-chroma
+requests
+PyJWT
+bcrypt
+pydantic
+python-multipart
