@@ -67,7 +67,7 @@ if not BIBLE_DATA:
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
-from langchain.chains.retrieval_qa.base import RetrievalQA
+from langchain_core.prompts import PromptTemplate
 from templates import prompt_for_mode
 import metrics
 
@@ -326,15 +326,23 @@ def qa(request: QARequest):
         search_kwargs={"k": 5, **({"filter": filter_opt} if filter_opt else {})}  # Reduced from 8 to 5
     )
 
-    chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
-        retriever=local_retriever,
-        chain_type_kwargs={"prompt": prompt_for_mode(request.mode.value)},
-    )
-
+    # Manual retrieval chain (RetrievalQA is deprecated)
     try:
-        res = chain.invoke({"query": request.question})
+        # Get relevant documents
+        docs = local_retriever.get_relevant_documents(request.question)
+        
+        # Build context from retrieved docs
+        context = "\n\n".join([doc.page_content for doc in docs])
+        
+        # Get the prompt template
+        prompt_template = prompt_for_mode(request.mode.value)
+        
+        # Format the prompt with context and question
+        formatted_prompt = prompt_template.format(context=context, question=request.question)
+        
+        # Get LLM response
+        response = llm.invoke(formatted_prompt)
+        res = {"result": response.content, "source_documents": docs}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     raw = res["result"].strip()
