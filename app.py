@@ -522,20 +522,11 @@ def health_check():
         "timestamp": datetime.utcnow().isoformat()
     }
 
-# 13) (optional) serve your UI if it exists
+# 13) Serve frontend - mount entire dist folder at root (API routes already defined above take precedence)
 ui_path = "graceguide-ui/dist"
 if os.path.isdir(ui_path):
-    app.mount("/static", StaticFiles(directory=ui_path, html=False), name="static")
-
-    from fastapi.responses import FileResponse
-
-    @app.get("/", include_in_schema=False)
-    def landing_page():
-        return FileResponse(os.path.join(ui_path, "index.html"))
-
-    @app.get("/app", include_in_schema=False)
-    def qa_page():
-        return FileResponse(os.path.join(ui_path, "index.html"))
+    # Mount the entire dist folder at root with html=True for SPA fallback
+    app.mount("/", StaticFiles(directory=ui_path, html=True), name="static")
 else:
     # avoids startup crash when dist folder is missing
     print(f"Static UI not found at {ui_path}, skipping mount")
