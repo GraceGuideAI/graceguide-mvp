@@ -1,13 +1,13 @@
 #!/bin/bash
-set -euo pipefail
+set -e
 
 echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
-echo "Installing Node.js dependencies and building frontend..."
+echo "Building frontend..."
 cd graceguide-ui
-npm ci
+npm install
 npm run build
 cd ..
 
-echo "Build completed successfully!"
+echo "Build complete!"
