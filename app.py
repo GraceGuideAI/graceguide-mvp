@@ -67,7 +67,7 @@ if not BIBLE_DATA:
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
-from langchain.chains import RetrievalQA
+from langchain.chains.retrieval_qa.base import RetrievalQA
 from templates import prompt_for_mode
 import metrics
 
