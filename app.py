@@ -78,22 +78,19 @@ if not api_key:
         "OPENAI_API_KEY environment variable not set. Please provide your OpenAI API key."
     )
 
-# 2) Load or build the Chroma vector store
-from pathlib import Path
-db_path = Path("veritas_ai_chroma_db")
-if not db_path.exists():
-    logging.info("ChromaDB not found, building from scratch...")
-    import subprocess
-    subprocess.run(["python", "build_db.py"], check=True)
-    logging.info("ChromaDB built successfully")
+# 2) Load the Chroma vector store (lazy loading to save memory)
+vectorstore = None
 
-vectorstore = Chroma(
-    persist_directory="veritas_ai_chroma_db",
-    embedding_function=OpenAIEmbeddings(openai_api_key=api_key)
-)
+def get_vectorstore():
+    global vectorstore
+    if vectorstore is None:
+        vectorstore = Chroma(
+            persist_directory="veritas_ai_chroma_db",
+            embedding_function=OpenAIEmbeddings(openai_api_key=api_key)
+        )
+    return vectorstore
 
-# 3) Build retriever
-retriever = vectorstore.as_retriever(search_kwargs={"k": 5})  # Reduced from 8 to 5 for faster processing
+# 3) Retriever will be created on-demand (lazy loading)
 
 # 4) Initialize the Chat model
 llm = ChatOpenAI(
@@ -322,7 +319,7 @@ def qa(request: QARequest):
     elif request.mode == SourceMode.catechism:
         filter_opt = {"source": "CCC"}
 
-    local_retriever = vectorstore.as_retriever(
+    local_retriever = get_vectorstore().as_retriever(
         search_kwargs={"k": 5, **({"filter": filter_opt} if filter_opt else {})}  # Reduced from 8 to 5
     )
 
