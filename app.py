@@ -325,8 +325,8 @@ def qa(request: QARequest):
 
     # Manual retrieval chain (RetrievalQA is deprecated)
     try:
-        # Get relevant documents
-        docs = local_retriever.get_relevant_documents(request.question)
+        # Get relevant documents using invoke() (new LangChain API)
+        docs = local_retriever.invoke(request.question)
         
         # Build context from retrieved docs
         context = "\n\n".join([doc.page_content for doc in docs])
