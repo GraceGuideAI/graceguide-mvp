@@ -188,18 +188,18 @@ export default function ProfileScreen({ onNavigate, onSignOut }) {
             </div>
             <button
               onClick={toggle}
-              className={`w-12 h-7 rounded-full transition-colors relative ${
+              className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${
                 darkMode ? 'bg-brand' : 'bg-gray-300'
               }`}
             >
               <span
-                className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
-                  darkMode ? 'translate-x-6' : 'translate-x-1'
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  darkMode ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>
           </div>
-          
+
           {/* Notifications */}
           <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
             <div className="flex items-center gap-3">
@@ -210,18 +210,18 @@ export default function ProfileScreen({ onNavigate, onSignOut }) {
             </div>
             <button
               onClick={() => toggleSetting('notifications', notifications, setNotifications)}
-              className={`w-12 h-7 rounded-full transition-colors relative ${
+              className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${
                 notifications ? 'bg-brand' : 'bg-gray-300'
               }`}
             >
               <span
-                className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
-                  notifications ? 'translate-x-6' : 'translate-x-1'
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  notifications ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>
           </div>
-          
+
           {/* Daily verse */}
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
@@ -235,13 +235,13 @@ export default function ProfileScreen({ onNavigate, onSignOut }) {
             </div>
             <button
               onClick={() => toggleSetting('daily_verse', dailyVerse, setDailyVerse)}
-              className={`w-12 h-7 rounded-full transition-colors relative ${
+              className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${
                 dailyVerse ? 'bg-brand' : 'bg-gray-300'
               }`}
             >
               <span
-                className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
-                  dailyVerse ? 'translate-x-6' : 'translate-x-1'
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  dailyVerse ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>
