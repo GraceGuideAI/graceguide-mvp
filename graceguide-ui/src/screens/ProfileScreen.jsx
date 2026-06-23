@@ -82,7 +82,7 @@ function MailIcon({ className }) {
   );
 }
 
-export default function ProfileScreen({ onNavigate, onSignOut }) {
+export default function ProfileScreen({ onNavigate, onSignIn, onSignOut }) {
   const { user } = useAuth();
   const { darkMode, toggle } = useDarkMode();
   const [notifications, setNotifications] = useState(() => {
@@ -91,23 +91,13 @@ export default function ProfileScreen({ onNavigate, onSignOut }) {
   const [dailyVerse, setDailyVerse] = useState(() => {
     return JSON.parse(localStorage.getItem('gg_daily_verse') || 'true');
   });
-  
-  const isPremium = false; // TODO: Check subscription status
-  
+
   const toggleSetting = (key, value, setter) => {
     setter(!value);
     localStorage.setItem(`gg_${key}`, JSON.stringify(!value));
   };
-  
+
   const menuItems = [
-    {
-      icon: CrownIcon,
-      label: 'Premium Subscription',
-      value: isPremium ? 'Active' : 'Free Plan',
-      action: () => onNavigate('premium'),
-      highlight: !isPremium,
-      color: 'text-yellow-500'
-    },
     {
       icon: ShieldIcon,
       label: 'Privacy Policy',
@@ -144,28 +134,20 @@ export default function ProfileScreen({ onNavigate, onSignOut }) {
             </div>
             <div className="flex-1">
               <h2 className="font-semibold text-gray-800 dark:text-white">
-                {user ? user.email : 'Guest User'}
+                {user ? user.email : 'Guest'}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {isPremium ? (
-                  <span className="flex items-center gap-1 text-yellow-500">
-                    <CrownIcon className="w-4 h-4" />
-                    Premium Member
-                  </span>
-                ) : (
-                  'Free Plan'
-                )}
+                {user ? 'Signed in · unlimited questions' : 'Not signed in'}
               </p>
             </div>
           </div>
-          
-          {!isPremium && (
+
+          {!user && (
             <button
-              onClick={() => onNavigate('premium')}
-              className="touch-target w-full mt-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-xl py-3 font-semibold flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/30"
+              onClick={onSignIn}
+              className="touch-target w-full mt-4 bg-brand text-white rounded-xl py-3 font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand/30"
             >
-              <CrownIcon className="w-5 h-5" />
-              Upgrade to Premium
+              Sign in or create account
             </button>
           )}
         </div>

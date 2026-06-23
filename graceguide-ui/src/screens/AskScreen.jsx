@@ -128,13 +128,14 @@ export default function AskScreen({ onNavigate, onAsk }) {
   const addMessage = useStore((state) => state.addMessage);
   const clearMessages = useStore((state) => state.clearMessages);
   const incrementDailyQuestions = useStore((state) => state.incrementDailyQuestions);
-  const setShowPremiumModal = useStore((state) => state.setShowPremiumModal);
+  const setShowSignInModal = useStore((state) => state.setShowSignInModal);
   const initializeUser = useStore((state) => state.initializeUser);
-  
+
   // Selectors
   const canAskQuestion = useStore(selectCanAskQuestion);
   const remainingQuestions = useStore(selectRemainingQuestions);
-  const isPremium = useStore((state) => state.user?.isPremium || false);
+  const isSignedIn = useStore((state) => !!state.user);
+  const signInReason = "You've used your 10 free questions for today. Sign in free for unlimited questions.";
   
   // Initialize user on mount
   useEffect(() => {
@@ -154,9 +155,9 @@ export default function AskScreen({ onNavigate, onAsk }) {
   const handleSend = useCallback(async () => {
     if (!input.trim()) return;
     
-    // Check daily limit
-    if (!canAskQuestion && !isPremium) {
-      setShowPremiumModal(true);
+    // Check daily limit (anonymous users only)
+    if (!canAskQuestion) {
+      setShowSignInModal(true, signInReason);
       return;
     }
     
@@ -211,7 +212,7 @@ export default function AskScreen({ onNavigate, onAsk }) {
     } finally {
       setIsTyping(false);
     }
-  }, [input, source, canAskQuestion, isPremium, addMessage, incrementDailyQuestions, setShowPremiumModal]);
+  }, [input, source, canAskQuestion, addMessage, incrementDailyQuestions, setShowSignInModal]);
   
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -247,7 +248,7 @@ export default function AskScreen({ onNavigate, onAsk }) {
             </button>
             <div>
               <h1 className="text-lg font-semibold text-gray-800 dark:text-white">Ask GraceGuide</h1>
-              {!isPremium && (
+              {!isSignedIn && (
                 <p className="text-xs text-gray-500">
                   {remainingQuestions} free questions remaining today
                 </p>
@@ -344,17 +345,16 @@ export default function AskScreen({ onNavigate, onAsk }) {
       
       {/* Input area */}
       <div className="bg-white dark:bg-gray-800 border-t dark:border-gray-700 p-4 safe-bottom safe-left safe-right">
-        {!canAskQuestion && !isPremium ? (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-center">
-            <CrownIcon className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+        {!canAskQuestion ? (
+          <div className="bg-brand/5 dark:bg-brand/10 border border-brand/20 rounded-xl p-4 text-center">
             <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-              You've used all your free questions for today
+              You've used your 10 free questions for today. Sign in free to keep asking — it's unlimited.
             </p>
             <button
-              onClick={() => onNavigate('premium')}
-              className="px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition"
+              onClick={() => setShowSignInModal(true, signInReason)}
+              className="px-4 py-2 bg-brand text-white rounded-lg font-medium hover:bg-brand-dark transition"
             >
-              Upgrade to Premium
+              Sign in for unlimited
             </button>
           </div>
         ) : (

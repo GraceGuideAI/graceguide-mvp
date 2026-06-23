@@ -9,8 +9,7 @@ import AnswerScreen from './screens/AnswerScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import PrayersScreen from './screens/PrayersScreen';
 import ProfileScreen from './screens/ProfileScreen';
-import PremiumScreen from './screens/PremiumScreen';
-import GuidanceScreen from './screens/GuidanceScreen';
+import AuthModal from './screens/AuthModal';
 
 // Icons
 function HomeIcon({ className, filled }) {
@@ -74,53 +73,24 @@ function HistoryIcon({ className, filled }) {
   );
 }
 
-function CompassIcon({ className, filled }) {
-  return filled ? (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.22-7.52-3.22 3.22 7.52 7.52-3.22-7.51 3.22z"/>
-    </svg>
-  ) : (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-    </svg>
-  );
-}
-
-function CrownIcon({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-    </svg>
-  );
-}
-
-function XIcon({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  );
-}
-
 // Tab configuration
 const TABS = [
   { id: 'home', label: 'Home', icon: HomeIcon },
   { id: 'ask', label: 'Ask', icon: SearchIcon },
-  { id: 'guidance', label: 'Guidance', icon: CompassIcon, premium: true },
   { id: 'history', label: 'History', icon: HistoryIcon },
   { id: 'prayers', label: 'Prayers', icon: BookOpenIcon },
   { id: 'profile', label: 'Profile', icon: UserIcon }
 ];
 
 // Bottom Tab Bar Component
-function BottomTabBar({ activeTab, onTabChange, isPremium }) {
+function BottomTabBar({ activeTab, onTabChange }) {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 safe-bottom z-50">
       <div className="flex items-center justify-around px-1">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
-          
+
           return (
             <button
               key={tab.id}
@@ -130,13 +100,10 @@ function BottomTabBar({ activeTab, onTabChange, isPremium }) {
               }`}
             >
               <div className="relative">
-                <Icon 
-                  className={`w-5 h-5 ${isActive ? 'scale-110' : ''} transition-transform`} 
+                <Icon
+                  className={`w-5 h-5 ${isActive ? 'scale-110' : ''} transition-transform`}
                   filled={isActive}
                 />
-                {tab.premium && !isPremium && (
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full" />
-                )}
               </div>
               <span className={`text-xs mt-1 font-medium ${isActive ? 'scale-105' : ''} transition-transform`}>
                 {tab.label}
@@ -144,45 +111,6 @@ function BottomTabBar({ activeTab, onTabChange, isPremium }) {
             </button>
           );
         })}
-      </div>
-    </div>
-  );
-}
-
-// Premium Modal
-function PremiumModal({ isOpen, onClose, onNavigate }) {
-  if (!isOpen) return null;
-  
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose}></div>
-      <div className="relative bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center">
-        <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CrownIcon className="w-8 h-8 text-amber-500" />
-        </div>
-        <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-          Premium Feature
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
-          You've reached your daily limit of 5 free questions. Upgrade to Premium for unlimited access!
-        </p>
-        <div className="space-y-3">
-          <button
-            onClick={() => {
-              onClose();
-              onNavigate('premium');
-            }}
-            className="w-full py-3 bg-amber-500 text-white rounded-xl font-semibold hover:bg-amber-600 transition"
-          >
-            Upgrade Now
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition"
-          >
-            Maybe Later
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -208,9 +136,10 @@ export default function App() {
   
   // Store hooks
   const initializeUser = useStore((state) => state.initializeUser);
-  const showPremiumModal = useStore((state) => state.showPremiumModal);
-  const setShowPremiumModal = useStore((state) => state.setShowPremiumModal);
-  const isPremium = useStore((state) => state.user?.isPremium || false);
+  const setStoreUser = useStore((state) => state.setUser);
+  const showSignInModal = useStore((state) => state.showSignInModal);
+  const signInReason = useStore((state) => state.signInReason);
+  const setShowSignInModal = useStore((state) => state.setShowSignInModal);
   
   // Navigation state
   const [activeTab, setActiveTab] = useState('home');
@@ -226,7 +155,13 @@ export default function App() {
   useEffect(() => {
     initializeUser();
   }, [initializeUser]);
-  
+
+  // Keep the store's user in sync with the auth hook so the question-limit
+  // logic knows whether someone is signed in (covers load, sign in/up, sign out).
+  useEffect(() => {
+    setStoreUser(user ? { email: user.email } : null);
+  }, [user, setStoreUser]);
+
   // Initialize dark mode on mount
   useEffect(() => {
     if (darkMode) {
@@ -310,31 +245,26 @@ export default function App() {
         
       case 'prayers':
         return <PrayersScreen />;
-        
-      case 'guidance':
-        return <GuidanceScreen onNavigate={navigate} />;
-        
+
       case 'profile':
         return (
           <ProfileScreen
             onNavigate={navigate}
+            onSignIn={() => setShowSignInModal(true)}
             onSignOut={() => {
               signOut();
               navigate('home');
             }}
           />
         );
-        
-      case 'premium':
-        return <PremiumScreen onNavigate={navigate} />;
-        
+
       default:
         return <HomeScreen onNavigate={navigate} onSelectQuestion={handleSelectQuestion} />;
     }
   };
-  
+
   // Check if we should show the tab bar
-  const showTabBar = ['home', 'history', 'prayers', 'profile', 'guidance'].includes(currentScreen);
+  const showTabBar = ['home', 'history', 'prayers', 'profile'].includes(currentScreen);
   
   return (
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
@@ -345,18 +275,19 @@ export default function App() {
       
       {/* Bottom Tab Bar */}
       {showTabBar && (
-        <BottomTabBar 
-          activeTab={activeTab} 
+        <BottomTabBar
+          activeTab={activeTab}
           onTabChange={handleTabChange}
-          isPremium={isPremium}
         />
       )}
-      
-      {/* Premium Modal */}
-      <PremiumModal
-        isOpen={showPremiumModal}
-        onClose={() => setShowPremiumModal(false)}
-        onNavigate={navigate}
+
+      {/* Sign In / Sign Up Modal */}
+      <AuthModal
+        isOpen={showSignInModal}
+        reason={signInReason}
+        onClose={() => setShowSignInModal(false)}
+        onSignIn={signIn}
+        onSignUp={signUp}
       />
       
       {/* Loading overlay for question asking */}

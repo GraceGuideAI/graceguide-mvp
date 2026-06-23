@@ -2,7 +2,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-const FREE_DAILY_LIMIT = 5;
+// Anonymous users get a generous free allowance before being asked to sign in.
+// Signed-in users have no limit (paid tiers can slot in here later).
+const ANON_DAILY_LIMIT = 10;
 
 // Generate anonymous ID
 const generateAnonymousId = () => {
@@ -43,8 +45,9 @@ export const useStore = create(
       isOffline: false,
       currentRoute: 'home',
       
-      // Premium modal
-      showPremiumModal: false,
+      // Sign-in prompt modal (shown when anonymous users hit their daily limit)
+      showSignInModal: false,
+      signInReason: null,
       
       // Initialize user
       initializeUser: () => {
@@ -75,7 +78,8 @@ export const useStore = create(
       
       incrementDailyQuestions: () => {
         const { user, dailyQuestionsUsed } = get();
-        if (!user?.isPremium) {
+        // Only anonymous users are counted against the daily limit.
+        if (!user) {
           set({ dailyQuestionsUsed: dailyQuestionsUsed + 1 });
         }
       },
@@ -141,8 +145,8 @@ export const useStore = create(
       setOffline: (isOffline) => set({ isOffline }),
       setCurrentRoute: (currentRoute) => set({ currentRoute }),
       
-      // Premium modal
-      setShowPremiumModal: (show) => set({ showPremiumModal: show }),
+      // Sign-in prompt modal
+      setShowSignInModal: (show, reason = null) => set({ showSignInModal: show, signInReason: reason }),
     }),
     {
       name: 'graceguide-storage',
@@ -160,17 +164,11 @@ export const useStore = create(
 
 // Selectors
 export const selectCanAskQuestion = (state) => {
-  if (!state.user) return true; // Allow anonymous users
-  if (state.user.isPremium) return true;
-  return state.dailyQuestionsUsed < FREE_DAILY_LIMIT;
+  if (state.user) return true; // Signed-in users have no limit
+  return state.dailyQuestionsUsed < ANON_DAILY_LIMIT;
 };
 
 export const selectRemainingQuestions = (state) => {
-  if (!state.user) return FREE_DAILY_LIMIT;
-  if (state.user.isPremium) return Infinity;
-  return Math.max(0, FREE_DAILY_LIMIT - state.dailyQuestionsUsed);
-};
-
-export const selectIsPremium = (state) => {
-  return state.user?.isPremium || false;
+  if (state.user) return Infinity;
+  return Math.max(0, ANON_DAILY_LIMIT - state.dailyQuestionsUsed);
 };

@@ -49,14 +49,6 @@ function XIcon({ className }) {
   );
 }
 
-function DownloadIcon({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
-  );
-}
-
 export default function AnswerScreen({ onNavigate, question, answer, source }) {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -92,93 +84,6 @@ export default function AnswerScreen({ onNavigate, question, answer, source }) {
         break;
     }
     setShowShareMenu(false);
-  };
-  
-  const generateShareImage = async () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1080;
-    canvas.height = 1920;
-    const ctx = canvas.getContext('2d');
-    
-    // Background gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#1e3c72');
-    gradient.addColorStop(1, '#2a5298');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Header
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 60px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('✝️ GraceGuide', canvas.width / 2, 120);
-    
-    // Question section
-    ctx.font = 'bold 40px Inter, sans-serif';
-    ctx.fillStyle = '#fbbf24';
-    ctx.fillText('Question:', canvas.width / 2, 280);
-    
-    ctx.font = '32px Inter, sans-serif';
-    ctx.fillStyle = 'white';
-    const questionLines = wrapText(ctx, question, canvas.width - 120, 36);
-    let y = 340;
-    questionLines.forEach(line => {
-      ctx.fillText(line, canvas.width / 2, y);
-      y += 44;
-    });
-    
-    // Answer section
-    y += 40;
-    ctx.font = 'bold 40px Inter, sans-serif';
-    ctx.fillStyle = '#fbbf24';
-    ctx.fillText('Answer:', canvas.width / 2, y);
-    
-    y += 60;
-    ctx.font = '28px Inter, sans-serif';
-    ctx.fillStyle = 'white';
-    const answerLines = wrapText(ctx, answerText, canvas.width - 120, 36);
-    answerLines.slice(0, 25).forEach(line => { // Limit lines
-      ctx.fillText(line, canvas.width / 2, y);
-      y += 36;
-    });
-    
-    // Footer
-    ctx.font = '24px Inter, sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Learn more at GraceGuide.app', canvas.width / 2, canvas.height - 80);
-    
-    // Download
-    canvas.toBlob(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'graceguide-qa.png';
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-    
-    setShowShareMenu(false);
-  };
-  
-  const wrapText = (ctx, text, maxWidth, lineHeight) => {
-    const words = text.split(' ');
-    const lines = [];
-    let currentLine = '';
-    
-    words.forEach(word => {
-      const testLine = currentLine + (currentLine ? ' ' : '') + word;
-      const metrics = ctx.measureText(testLine);
-      
-      if (metrics.width > maxWidth && currentLine) {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
-      }
-    });
-    
-    if (currentLine) lines.push(currentLine);
-    return lines;
   };
   
   return (
@@ -300,14 +205,6 @@ export default function AnswerScreen({ onNavigate, question, answer, source }) {
                 <span className="font-medium text-gray-700 dark:text-gray-200">
                   {copied ? 'Copied!' : 'Copy to clipboard'}
                 </span>
-              </button>
-              
-              <button
-                onClick={generateShareImage}
-                className="touch-target w-full flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition"
-              >
-                <DownloadIcon className="w-5 h-5 text-brand" />
-                <span className="font-medium text-gray-700 dark:text-gray-200">Save as image</span>
               </button>
               
               <div className="grid grid-cols-2 gap-3 pt-2">

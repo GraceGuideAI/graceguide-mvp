@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -25,10 +25,6 @@ FALLBACK_VERSE_TEXT = (
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24 * 30  # 30 days
-
-# RevenueCat configuration
-REVENUECAT_WEBHOOK_SECRET = os.getenv("REVENUECAT_WEBHOOK_SECRET", "")
-REVENUECAT_ENTITLEMENT_ID = os.getenv("REVENUECAT_ENTITLEMENT_ID", "premium")
 
 # User storage file
 USERS_FILE = Path("users.json")
@@ -444,76 +440,7 @@ def log_event(evt: LogEvent):
     metrics.log_event(evt.event)
     return {"status": "ok"}
 
-# 11) RevenueCat webhook endpoint for subscription events
-class RevenueCatEvent(BaseModel):
-    event: dict
-
-@app.post("/webhooks/revenuecat")
-async def revenuecat_webhook(request: Request):
-    """
-    Handle RevenueCat webhook events for subscription lifecycle management.
-    Events: INITIAL_PURCHASE, RENEWAL, CANCELLATION, EXPIRATION, etc.
-    """
-    import hashlib
-    import hmac
-    
-    body = await request.body()
-    
-    # Verify webhook signature if secret is configured
-    if REVENUECAT_WEBHOOK_SECRET:
-        signature = request.headers.get("X-RevenueCat-Signature", "")
-        expected = hmac.new(
-            REVENUECAT_WEBHOOK_SECRET.encode(),
-            body,
-            hashlib.sha256
-        ).hexdigest()
-        if not hmac.compare_digest(signature, expected):
-            raise HTTPException(status_code=401, detail="Invalid signature")
-    
-    try:
-        payload = json.loads(body)
-        event_type = payload.get("event", {}).get("type", "")
-        event = payload.get("event", {})
-        
-        # Log the event for tracking
-        app_user_id = event.get("app_user_id", "unknown")
-        product_id = event.get("product_id", "unknown")
-        
-        logging.info(f"RevenueCat event: {event_type} for user {app_user_id}, product {product_id}")
-        metrics.log_event(f"revenuecat_{event_type}")
-        
-        # Handle different event types
-        if event_type == "INITIAL_PURCHASE":
-            # New subscription - grant premium access
-            logging.info(f"New premium subscription: {app_user_id}")
-            # Could update user record in database here
-            
-        elif event_type == "RENEWAL":
-            # Subscription renewed
-            logging.info(f"Subscription renewed: {app_user_id}")
-            
-        elif event_type == "CANCELLATION":
-            # User cancelled - will expire at period end
-            logging.info(f"Subscription cancelled: {app_user_id}")
-            
-        elif event_type == "EXPIRATION":
-            # Subscription expired - revoke premium access
-            logging.info(f"Subscription expired: {app_user_id}")
-            # Could update user record to remove premium here
-            
-        elif event_type == "REFUND":
-            # User refunded - revoke access immediately
-            logging.info(f"Subscription refunded: {app_user_id}")
-            
-        return {"status": "ok"}
-        
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON payload")
-    except Exception as e:
-        logging.error(f"RevenueCat webhook error: {e}")
-        raise HTTPException(status_code=500, detail="Webhook processing failed")
-
-# 12) Health check endpoint for monitoring
+# 11) Health check endpoint for monitoring
 @app.get("/health")
 def health_check():
     return {
