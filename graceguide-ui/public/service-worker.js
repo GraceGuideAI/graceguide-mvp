@@ -2,9 +2,7 @@ const CACHE_NAME = 'graceguide-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/src/main.jsx',
-  '/src/main.js'
+  '/manifest.json'
 ];
 
 // Install event - cache static assets
