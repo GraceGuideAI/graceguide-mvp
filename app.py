@@ -226,26 +226,29 @@ class VerseOfTheDayResponse(BaseModel):
     verse_reference: str
 
 # Load meaningful verses for daily selection.
-# References use Douay-Rheims book names and Vulgate numbering to match
-# EntireBible-DR.json (e.g. "Isaias" not "Isaiah", Psalm 22 = the shepherd
-# psalm). Every entry below has been verified to resolve to its intended text
-# against the dataset; see scripts/verify_daily_verses.py.
+# `book`/`chapter`/`verse` are Douay-Rheims LOOKUP KEYS into EntireBible-DR.json
+# (e.g. "Isaias", and Psalm 22 = the shepherd psalm in Vulgate numbering).
+# `display` is the MODERN reference label shown to users — decoupled from the
+# lookup key so we can show normal names/numbers ("Isaiah", "Psalm 23") while
+# the verse text is still pulled from the DR data. `display` also corrects the
+# James data defect: the wisdom verse is mis-keyed at 1:6 here but its true
+# citation is 1:5. Every entry is verified by scripts/verify_daily_verses.py.
 MEANINGFUL_VERSES = [
-    {"book": "Matthew", "chapter": "5", "verse": "8", "theme": "purity"},
-    {"book": "John", "chapter": "3", "verse": "16", "theme": "love"},
-    {"book": "Psalms", "chapter": "22", "verse": "1", "theme": "trust"},
-    {"book": "Romans", "chapter": "8", "verse": "28", "theme": "providence"},
-    {"book": "1 John", "chapter": "4", "verse": "8", "theme": "love"},
-    {"book": "Philippians", "chapter": "4", "verse": "13", "theme": "strength"},
-    {"book": "Isaias", "chapter": "40", "verse": "31", "theme": "hope"},
-    {"book": "Proverbs", "chapter": "3", "verse": "5", "theme": "trust"},
-    {"book": "Matthew", "chapter": "6", "verse": "33", "theme": "priorities"},
-    {"book": "James", "chapter": "1", "verse": "6", "theme": "wisdom"},
-    {"book": "Ephesians", "chapter": "2", "verse": "8", "theme": "grace"},
-    {"book": "Hebrews", "chapter": "11", "verse": "1", "theme": "faith"},
-    {"book": "Jeremias", "chapter": "29", "verse": "11", "theme": "hope"},
-    {"book": "Matthew", "chapter": "11", "verse": "28", "theme": "rest"},
-    {"book": "John", "chapter": "14", "verse": "6", "theme": "truth"},
+    {"book": "Matthew", "chapter": "5", "verse": "8", "theme": "purity", "display": "Matthew 5:8"},
+    {"book": "John", "chapter": "3", "verse": "16", "theme": "love", "display": "John 3:16"},
+    {"book": "Psalms", "chapter": "22", "verse": "1", "theme": "trust", "display": "Psalm 23:1"},
+    {"book": "Romans", "chapter": "8", "verse": "28", "theme": "providence", "display": "Romans 8:28"},
+    {"book": "1 John", "chapter": "4", "verse": "8", "theme": "love", "display": "1 John 4:8"},
+    {"book": "Philippians", "chapter": "4", "verse": "13", "theme": "strength", "display": "Philippians 4:13"},
+    {"book": "Isaias", "chapter": "40", "verse": "31", "theme": "hope", "display": "Isaiah 40:31"},
+    {"book": "Proverbs", "chapter": "3", "verse": "5", "theme": "trust", "display": "Proverbs 3:5"},
+    {"book": "Matthew", "chapter": "6", "verse": "33", "theme": "priorities", "display": "Matthew 6:33"},
+    {"book": "James", "chapter": "1", "verse": "6", "theme": "wisdom", "display": "James 1:5"},
+    {"book": "Ephesians", "chapter": "2", "verse": "8", "theme": "grace", "display": "Ephesians 2:8"},
+    {"book": "Hebrews", "chapter": "11", "verse": "1", "theme": "faith", "display": "Hebrews 11:1"},
+    {"book": "Jeremias", "chapter": "29", "verse": "11", "theme": "hope", "display": "Jeremiah 29:11"},
+    {"book": "Matthew", "chapter": "11", "verse": "28", "theme": "rest", "display": "Matthew 11:28"},
+    {"book": "John", "chapter": "14", "verse": "6", "theme": "truth", "display": "John 14:6"},
 ]
 
 # Cache for verse of the day
@@ -289,7 +292,8 @@ def get_verse_of_the_day():
         else:
             # Strip Douay-Rheims footnote markers (*) so they don't render in the UI.
             verse_text = verse_text.replace("*", "").strip()
-            verse_reference = (
+            # Show the modern label; fall back to the DR coordinates if absent.
+            verse_reference = selected_verse.get("display") or (
                 f"{selected_verse['book']} {selected_verse['chapter']}:{selected_verse['verse']}"
             )
 
