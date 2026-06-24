@@ -7,9 +7,11 @@ services:
     envVars:
       - key: OPENAI_API_KEY
         sync: false
-      # Pinned (do NOT regenerate — rotating this logs out every existing user).
+      # generateValue persists a stable value across deploys (it is generated
+      # once, not regenerated). Do NOT switch this to sync:false — clearing it
+      # would log out every existing user and fall back to an insecure default.
       - key: JWT_SECRET
-        sync: false
+        generateValue: true
       - key: ADMIN_PASSWORD
         sync: false
       # Supabase: persistence (users/subscribers/metrics/qa-cache) + pgvector.

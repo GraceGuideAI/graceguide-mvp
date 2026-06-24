@@ -22,9 +22,23 @@ FALLBACK_VERSE_TEXT = (
 )
 
 # JWT secret key
-JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
+_DEFAULT_JWT_SECRET = "your-secret-key-change-in-production"
+JWT_SECRET = os.getenv("JWT_SECRET", _DEFAULT_JWT_SECRET)
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24 * 30  # 30 days
+
+# Surface insecure/missing secrets. Hard-fail only on the deployed Render
+# instance (RENDER is set there); just warn locally so dev still runs.
+_IS_RENDER = bool(os.getenv("RENDER"))
+if JWT_SECRET == _DEFAULT_JWT_SECRET:
+    if _IS_RENDER:
+        raise RuntimeError(
+            "JWT_SECRET is unset/default in production. render.yaml auto-generates "
+            "it (generateValue); set it before serving auth."
+        )
+    logging.warning("JWT_SECRET is the insecure default — set JWT_SECRET in production.")
+if _IS_RENDER and not os.getenv("ADMIN_PASSWORD"):
+    logging.warning("ADMIN_PASSWORD is not set — the /metrics endpoint will be unavailable.")
 
 # User storage file
 USERS_FILE = Path("users.json")
