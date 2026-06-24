@@ -1,10 +1,16 @@
 # build_db.py
-
+#
+# One-time (or rare) job: embed the Bible + Catechism corpus and store the
+# vectors in Supabase pgvector (the `documents` table queried by app.py at
+# runtime). Run locally with OPENAI_API_KEY, SUPABASE_URL and
+# SUPABASE_SERVICE_ROLE_KEY set:
+#
+#     OPENAI_API_KEY=... SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... python build_db.py
+#
 import os
 import json
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain_chroma import Chroma 
 
 # 1) Load the JSON files (they live in the same folder as this script)
 with open("EntireBible-DR.json", "r", encoding="utf-8") as f:
@@ -62,15 +68,37 @@ for entry in combined:
             "chunk_index": i
         })
 
-# 7) Embed & save to Chroma using texts + metadata
+# 7) Embed & store in Supabase pgvector (durable; queried by the app at runtime)
+from supabase import create_client
+from langchain_community.vectorstores import SupabaseVectorStore
+
 api_key = os.getenv("OPENAI_API_KEY")
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+if not (api_key and supabase_url and supabase_key):
+    raise SystemExit(
+        "Set OPENAI_API_KEY, SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY before running."
+    )
+
+client = create_client(supabase_url, supabase_key)
+
+# Idempotent: clear any existing rows so re-running doesn't duplicate the corpus.
+try:
+    client.table("documents").delete().neq(
+        "id", "00000000-0000-0000-0000-000000000000"
+    ).execute()
+except Exception as e:
+    print(f"⚠️  Could not pre-clear documents table ({e}); continuing.")
+
 embeddings = OpenAIEmbeddings(openai_api_key=api_key)
-db = Chroma.from_texts(
+SupabaseVectorStore.from_texts(
     texts=docs,
     embedding=embeddings,
     metadatas=metadatas,
-    persist_directory="veritas_ai_chroma_db"
+    client=client,
+    table_name="documents",
+    query_name="match_documents",
+    chunk_size=500,
 )
-# ChromaDB now auto-persists, no need to call db.persist()
 
-print("✅ Chroma DB built at ./veritas_ai_chroma_db")
+print(f"✅ Embedded {len(docs)} chunks into Supabase pgvector (documents table)")

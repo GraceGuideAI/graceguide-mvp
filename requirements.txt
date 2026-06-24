@@ -12,3 +12,5 @@ PyJWT
 bcrypt
 pydantic
 python-multipart
+supabase
+psycopg[binary,pool]

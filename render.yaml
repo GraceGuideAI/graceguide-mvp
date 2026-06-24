@@ -7,7 +7,19 @@ services:
     envVars:
       - key: OPENAI_API_KEY
         sync: false
+      # Pinned (do NOT regenerate — rotating this logs out every existing user).
       - key: JWT_SECRET
-        generateValue: true
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Supabase: persistence (users/subscribers/metrics/qa-cache) + pgvector.
+      # Leave unset to fall back to legacy flat files. DATABASE_URL is the
+      # Supavisor transaction-pooler string (port 6543).
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
       - key: PYTHON_VERSION
         value: "3.11.0"

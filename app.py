@@ -66,6 +66,7 @@ from langchain_chroma import Chroma
 from langchain_core.prompts import PromptTemplate
 from templates import prompt_for_mode
 import metrics
+import db
 
 # 1) Read API key
 api_key = os.getenv("OPENAI_API_KEY")
@@ -74,16 +75,33 @@ if not api_key:
         "OPENAI_API_KEY environment variable not set. Please provide your OpenAI API key."
     )
 
-# 2) Load the Chroma vector store (lazy loading to save memory)
+# 2) Vector store (lazy). Prefer durable Supabase pgvector when configured;
+#    otherwise fall back to the local Chroma index (legacy / local dev).
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+USE_SUPABASE_VECTORS = bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)
+
 vectorstore = None
 
 def get_vectorstore():
     global vectorstore
     if vectorstore is None:
-        vectorstore = Chroma(
-            persist_directory="veritas_ai_chroma_db",
-            embedding_function=OpenAIEmbeddings(openai_api_key=api_key)
-        )
+        embeddings = OpenAIEmbeddings(openai_api_key=api_key)
+        if USE_SUPABASE_VECTORS:
+            from supabase import create_client
+            from langchain_community.vectorstores import SupabaseVectorStore
+            client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+            vectorstore = SupabaseVectorStore(
+                client=client,
+                embedding=embeddings,
+                table_name="documents",
+                query_name="match_documents",
+            )
+        else:
+            vectorstore = Chroma(
+                persist_directory="veritas_ai_chroma_db",
+                embedding_function=embeddings,
+            )
     return vectorstore
 
 # 3) Retriever will be created on-demand (lazy loading)
@@ -187,36 +205,42 @@ def save_users():
 @app.post("/auth/signup", response_model=AuthResponse)
 def signup(request: AuthRequest):
     email = request.email.lower().strip()
-    
-    # Check if user already exists
-    if email in users:
-        raise HTTPException(status_code=400, detail="User already exists")
-    
-    # Create new user
-    users[email] = {
-        "password_hash": hash_password(request.password),
-        "created_at": datetime.utcnow().isoformat()
-    }
-    if not save_users():
-        raise HTTPException(status_code=500, detail="Failed to save user data")
-    
-    # Create token
+    password_hash = hash_password(request.password)
+
+    if db.enabled:
+        if db.get_user(email):
+            raise HTTPException(status_code=400, detail="User already exists")
+        try:
+            db.create_user(email, password_hash)
+        except Exception as e:
+            logging.error("Failed to create user: %s", e)
+            raise HTTPException(status_code=500, detail="Failed to save user data")
+    else:
+        if email in users:
+            raise HTTPException(status_code=400, detail="User already exists")
+        users[email] = {
+            "password_hash": password_hash,
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        if not save_users():
+            raise HTTPException(status_code=500, detail="Failed to save user data")
+
     token = create_jwt_token(email)
     return AuthResponse(token=token, email=email)
 
 @app.post("/auth/signin", response_model=AuthResponse)
 def signin(request: AuthRequest):
     email = request.email.lower().strip()
-    
-    # Check if user exists
-    if email not in users:
+
+    if db.enabled:
+        user = db.get_user(email)
+        password_hash = user["password_hash"] if user else None
+    else:
+        password_hash = users.get(email, {}).get("password_hash")
+
+    if not password_hash or not verify_password(request.password, password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    # Verify password
-    if not verify_password(request.password, users[email]["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    # Create token
+
     token = create_jwt_token(email)
     return AuthResponse(token=token, email=email)
 
@@ -315,7 +339,13 @@ def get_verse_of_the_day():
 @app.post("/qa", response_model=QAResponse)
 def qa(request: QARequest):
     key = f"{request.mode.value}|{request.question.strip()}"
-    cached = cache.get(key)
+    if db.enabled:
+        try:
+            cached = db.qa_cache_get(key)
+        except Exception:
+            cached = None
+    else:
+        cached = cache.get(key)
     if cached:
         return QAResponse(**cached)
     # Build retriever with optional source filter
@@ -363,12 +393,18 @@ def qa(request: QARequest):
 
     answer = answer_text.strip()
     resp = {"answer": answer, "sources": sources}
-    cache[key] = resp
-    try:
-        with CACHE_FILE.open("w") as f:
-            json.dump(cache, f)
-    except Exception:
-        pass
+    if db.enabled:
+        try:
+            db.qa_cache_set(key, answer, sources)
+        except Exception as e:
+            logging.error("Failed to write qa cache: %s", e)
+    else:
+        cache[key] = resp
+        try:
+            with CACHE_FILE.open("w") as f:
+                json.dump(cache, f)
+        except Exception:
+            pass
     return QAResponse(**resp)
 
 # 8) /subscribe endpoint to capture emails
@@ -420,6 +456,16 @@ def subscribe(req: SubscribeRequest):
             raise Exception(f"PUT {r.status_code}: {r.text}")
         except Exception as e:
             print(f"Mailchimp error: {e}")
+
+    # Durable store when configured, else legacy CSV (ephemeral on Render).
+    if db.enabled:
+        try:
+            if db.subscriber_exists(email):
+                return {"status": "already_subscribed"}
+            db.add_subscriber(email)
+            return {"status": "ok"}
+        except Exception as e:
+            logging.error("Failed to store subscriber: %s", e)
 
     ensure_csv()
     if email_in_csv():
