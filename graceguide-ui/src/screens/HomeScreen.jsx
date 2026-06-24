@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useVerseOfDay, useHistory } from '../hooks/useApi';
+import { getTodayCelebration } from '../data/liturgical';
+
+const SEASON_DOT = {
+  green: 'bg-green-500',
+  purple: 'bg-purple-500',
+  white: 'bg-yellow-300',
+  red: 'bg-red-500',
+};
 
 // Icons
 function SparklesIcon({ className }) {
@@ -42,6 +50,8 @@ export default function HomeScreen({ onNavigate, onSelectQuestion }) {
   const [showDailyVerse] = useState(
     () => JSON.parse(localStorage.getItem('gg_daily_verse') ?? 'true')
   );
+  // Today's liturgical celebration (or season) — computed locally, no network.
+  const [celebration] = useState(() => getTodayCelebration());
 
   useEffect(() => {
     if (showDailyVerse) fetchVerse();
@@ -101,6 +111,26 @@ export default function HomeScreen({ onNavigate, onSelectQuestion }) {
         </div>
       </div>
       )}
+
+      {/* Today in the Church */}
+      <div className={`px-4 ${showDailyVerse ? 'mt-4' : '-mt-4'}`}>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 flex items-center gap-3 animate-fadeIn">
+          <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${SEASON_DOT[celebration.color] || 'bg-gray-400'}`} />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Today in the Church · {celebration.season}
+            </p>
+            <p className="font-medium text-gray-800 dark:text-white truncate">
+              {celebration.title}
+            </p>
+          </div>
+          {celebration.rank !== 'Season' && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex-shrink-0">
+              {celebration.rank}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Quick Ask Section */}
       <div className="px-4 mt-6">
