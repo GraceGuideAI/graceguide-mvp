@@ -27,7 +27,8 @@ def _get_pool():
         # Small pool — Render dynos are ephemeral and may scale; the transaction
         # pooler multiplexes, so a handful of client connections is plenty.
         _pool = ConnectionPool(
-            DATABASE_URL, min_size=0, max_size=5, kwargs={"autocommit": True}
+            DATABASE_URL, min_size=0, max_size=5,
+            kwargs={"autocommit": True}, open=True,
         )
     return _pool
 
