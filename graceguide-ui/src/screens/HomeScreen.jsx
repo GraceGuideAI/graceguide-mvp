@@ -38,15 +38,19 @@ export default function HomeScreen({ onNavigate, onSelectQuestion }) {
   const { verse, loading: verseLoading, fetchVerse } = useVerseOfDay();
   const { history } = useHistory();
   const [greeting, setGreeting] = useState('');
-  
+  // Respect the "Daily Verse" preference toggled in Profile.
+  const [showDailyVerse] = useState(
+    () => JSON.parse(localStorage.getItem('gg_daily_verse') ?? 'true')
+  );
+
   useEffect(() => {
-    fetchVerse();
+    if (showDailyVerse) fetchVerse();
     
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Good morning');
     else if (hour < 18) setGreeting('Good afternoon');
     else setGreeting('Good evening');
-  }, [fetchVerse]);
+  }, [fetchVerse, showDailyVerse]);
   
   const recentHistory = history.slice(0, 5);
   
@@ -69,6 +73,7 @@ export default function HomeScreen({ onNavigate, onSelectQuestion }) {
       </div>
       
       {/* Daily Verse Card */}
+      {showDailyVerse && (
       <div className="px-4 -mt-4">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 animate-fadeIn">
           <div className="flex items-center gap-2 mb-3">
@@ -95,7 +100,8 @@ export default function HomeScreen({ onNavigate, onSelectQuestion }) {
           )}
         </div>
       </div>
-      
+      )}
+
       {/* Quick Ask Section */}
       <div className="px-4 mt-6">
         <h3 className="font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
@@ -137,7 +143,7 @@ export default function HomeScreen({ onNavigate, onSelectQuestion }) {
           >
             <span className="text-2xl mb-2 block">⚡</span>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Commandments</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">God\'s law for us</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">God's law for us</p>
           </button>
         </div>
         

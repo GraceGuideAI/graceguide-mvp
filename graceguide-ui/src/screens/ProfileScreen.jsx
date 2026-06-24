@@ -85,9 +85,6 @@ function MailIcon({ className }) {
 export default function ProfileScreen({ onNavigate, onSignIn, onSignOut }) {
   const { user } = useAuth();
   const { darkMode, toggle } = useDarkMode();
-  const [notifications, setNotifications] = useState(() => {
-    return JSON.parse(localStorage.getItem('gg_notifications') || 'true');
-  });
   const [dailyVerse, setDailyVerse] = useState(() => {
     return JSON.parse(localStorage.getItem('gg_daily_verse') || 'true');
   });
@@ -177,28 +174,6 @@ export default function ProfileScreen({ onNavigate, onSignIn, onSignOut }) {
               <span
                 className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
                   darkMode ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* Notifications */}
-          <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                <BellIcon className="w-5 h-5 text-blue-600" />
-              </div>
-              <span className="font-medium text-gray-800 dark:text-white">Notifications</span>
-            </div>
-            <button
-              onClick={() => toggleSetting('notifications', notifications, setNotifications)}
-              className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${
-                notifications ? 'bg-brand' : 'bg-gray-300'
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                  notifications ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>

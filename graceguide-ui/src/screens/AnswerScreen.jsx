@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 // Icons
 function ArrowLeftIcon({ className }) {
@@ -122,9 +123,9 @@ export default function AnswerScreen({ onNavigate, question, answer, source }) {
         
         {/* Answer card */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-5 animate-fadeIn">
-          <p className="text-gray-700 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
-            {answerText}
-          </p>
+          <div className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-200 leading-relaxed">
+            <ReactMarkdown>{answerText}</ReactMarkdown>
+          </div>
         </div>
         
         {/* Sources */}

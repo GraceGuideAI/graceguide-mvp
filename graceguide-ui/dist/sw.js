@@ -1,10 +1,10 @@
-const CACHE_NAME = 'graceguide-v1';
+const CACHE_NAME = 'graceguide-v2';
+// Only precache paths that actually exist in the Vite build. The hashed
+// JS/CSS bundles under /assets are picked up at runtime by the fetch handler.
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/static/index.html',
-  '/static/app.js',
-  '/static/app.css'
+  '/manifest.json'
 ];
 
 // Install event - cache static assets
@@ -63,8 +63,8 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data?.text() || 'Daily verse is ready!',
-    icon: '/icon-192x192.png',
-    badge: '/icon-72x72.png',
+    icon: '/icons/icon-192x192.svg',
+    badge: '/icons/icon-72x72.svg',
     tag: 'daily-verse',
     requireInteraction: true
   };
