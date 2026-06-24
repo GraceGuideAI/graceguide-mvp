@@ -225,21 +225,25 @@ class VerseOfTheDayResponse(BaseModel):
     verse_text: str
     verse_reference: str
 
-# Load meaningful verses for daily selection
+# Load meaningful verses for daily selection.
+# References use Douay-Rheims book names and Vulgate numbering to match
+# EntireBible-DR.json (e.g. "Isaias" not "Isaiah", Psalm 22 = the shepherd
+# psalm). Every entry below has been verified to resolve to its intended text
+# against the dataset; see scripts/verify_daily_verses.py.
 MEANINGFUL_VERSES = [
     {"book": "Matthew", "chapter": "5", "verse": "8", "theme": "purity"},
     {"book": "John", "chapter": "3", "verse": "16", "theme": "love"},
-    {"book": "Psalms", "chapter": "23", "verse": "1", "theme": "trust"},
+    {"book": "Psalms", "chapter": "22", "verse": "1", "theme": "trust"},
     {"book": "Romans", "chapter": "8", "verse": "28", "theme": "providence"},
-    {"book": "1 Corinthians", "chapter": "13", "verse": "13", "theme": "love"},
+    {"book": "1 John", "chapter": "4", "verse": "8", "theme": "love"},
     {"book": "Philippians", "chapter": "4", "verse": "13", "theme": "strength"},
-    {"book": "Isaiah", "chapter": "40", "verse": "31", "theme": "hope"},
+    {"book": "Isaias", "chapter": "40", "verse": "31", "theme": "hope"},
     {"book": "Proverbs", "chapter": "3", "verse": "5", "theme": "trust"},
     {"book": "Matthew", "chapter": "6", "verse": "33", "theme": "priorities"},
-    {"book": "James", "chapter": "1", "verse": "5", "theme": "wisdom"},
+    {"book": "James", "chapter": "1", "verse": "6", "theme": "wisdom"},
     {"book": "Ephesians", "chapter": "2", "verse": "8", "theme": "grace"},
     {"book": "Hebrews", "chapter": "11", "verse": "1", "theme": "faith"},
-    {"book": "Jeremiah", "chapter": "29", "verse": "11", "theme": "hope"},
+    {"book": "Jeremias", "chapter": "29", "verse": "11", "theme": "hope"},
     {"book": "Matthew", "chapter": "11", "verse": "28", "theme": "rest"},
     {"book": "John", "chapter": "14", "verse": "6", "theme": "truth"},
 ]
@@ -283,6 +287,8 @@ def get_verse_of_the_day():
             verse_text = FALLBACK_VERSE_TEXT
             verse_reference = FALLBACK_VERSE_REFERENCE
         else:
+            # Strip Douay-Rheims footnote markers (*) so they don't render in the UI.
+            verse_text = verse_text.replace("*", "").strip()
             verse_reference = (
                 f"{selected_verse['book']} {selected_verse['chapter']}:{selected_verse['verse']}"
             )
