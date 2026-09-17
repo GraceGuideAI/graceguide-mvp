@@ -78,7 +78,7 @@ if not BIBLE_DATA:
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from templates import prompt_for_mode
-from qa_logic import retrieve_sources, source_context, normalize_answer
+from qa_logic import LocalReferenceStore, retrieve_sources, source_context, normalize_answer
 import metrics
 import db
 
@@ -100,8 +100,8 @@ vectorstore = None
 def get_vectorstore():
     global vectorstore
     if vectorstore is None:
-        embeddings = OpenAIEmbeddings(openai_api_key=api_key)
         if USE_SUPABASE_VECTORS:
+            embeddings = OpenAIEmbeddings(openai_api_key=api_key)
             from supabase import create_client
             from langchain_community.vectorstores import SupabaseVectorStore
             client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -111,12 +111,18 @@ def get_vectorstore():
                 table_name="documents",
                 query_name="match_documents",
             )
-        else:
+        elif Path("veritas_ai_chroma_db").is_dir() and any(Path("veritas_ai_chroma_db").iterdir()):
+            embeddings = OpenAIEmbeddings(openai_api_key=api_key)
             from langchain_chroma import Chroma
             vectorstore = Chroma(
                 persist_directory="veritas_ai_chroma_db",
                 embedding_function=embeddings,
             )
+        else:
+            logging.warning(
+                "No external vector library configured; using checked-in reference corpus."
+            )
+            vectorstore = LocalReferenceStore.from_files()
     return vectorstore
 
 # 3) Retriever will be created on-demand (lazy loading)
