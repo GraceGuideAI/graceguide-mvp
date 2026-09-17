@@ -60,7 +60,7 @@ const MODE_NAMES = {
 function BrandMark({ small = false }) {
   return (
     <span className={`brand-mark ${small ? "small" : ""}`} aria-hidden="true">
-      <Cross size={small ? 18 : 28} strokeWidth={1.4} />
+      <Cross size={small ? 18 : 28} strokeWidth={1.7} />
     </span>
   );
 }
@@ -492,18 +492,13 @@ export default function App() {
           </button>
         </div>
       </form>
-      <p className="composer-note">
-        {!canAsk ? (
+      {!canAsk && (
+        <p className="composer-note">
           <button className="text-button" onClick={() => setAuthOpen(true)}>
             You’ve reached today’s free limit. Sign in to keep asking.
           </button>
-        ) : (
-          <>
-            Rooted in faith. Guided by sources.{" "}
-            <span>Always room for questions.</span>
-          </>
-        )}
-      </p>
+        </p>
+      )}
     </div>
   );
   const sortedChats = [...chats].sort(
@@ -715,7 +710,7 @@ export default function App() {
             </button>
             <span className="topbar-title">
               {page === "chat"
-                ? activeChat?.title || "A conversation in faith"
+                ? activeChat?.title || "Catholic Q&A"
                 : page === "prayers"
                   ? "Prayer library"
                   : page === "daily"
@@ -724,7 +719,7 @@ export default function App() {
             </span>
           </div>
           <span className="faith-label">
-            <span /> SCRIPTURE & TRADITION
+            <Cross size={12} strokeWidth={1.8} /> CATHOLIC Q&A
           </span>
           <button
             className="mobile-new icon-button"
@@ -745,15 +740,10 @@ export default function App() {
             {!messages.length ? (
               <div className="welcome">
                 <div className="welcome-heading">
-                  <div className="welcome-kicker">
-                    <span /> FAITH SEEKS UNDERSTANDING
-                  </div>
                   <h1>
-                    Bring your questions.
-                    <br />
-                    <em>Find a little clarity.</em>
+                    Ask about the <em>Catholic faith.</em>
                   </h1>
-                  <p>Explore the Catholic faith, one conversation at a time.</p>
+                  <p>Get answers grounded in Scripture and the Catechism.</p>
                 </div>
                 {composer}
                 <div className="suggestions">
@@ -930,12 +920,6 @@ export default function App() {
               </div>
             </section>
           </div>
-        )}
-        {page === "chat" && !messages.length && (
-          <footer className="welcome-footer">
-            <span>Rooted in 2,000 years of Catholic tradition.</span>
-            <span>Made for your everyday questions.</span>
-          </footer>
         )}
       </main>
       {authOpen && (

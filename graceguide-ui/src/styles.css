@@ -433,16 +433,11 @@ p {
   display: flex;
   align-items: center;
   gap: 7px;
-  letter-spacing: 1.4px;
-  font-size: 8px;
-  color: var(--muted);
+  letter-spacing: 1.25px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--accent);
   white-space: nowrap;
-}
-.faith-label > span {
-  width: 5px;
-  height: 5px;
-  background: #8b9d7d;
-  border-radius: 50%;
 }
 .open-sidebar,
 .mobile-new {
@@ -462,22 +457,6 @@ p {
 }
 .welcome-heading {
   margin-bottom: 33px;
-}
-.welcome-kicker {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 9px;
-  letter-spacing: 1.9px;
-  color: var(--accent);
-  font-weight: 550;
-  margin-bottom: 24px;
-}
-.welcome-kicker span {
-  display: block;
-  width: 21px;
-  height: 1px;
-  background: var(--accent);
 }
 h1 {
   font-family: "Lora", Georgia, serif;
@@ -651,14 +630,6 @@ h1 {
 }
 .verse-bottom .text-button {
   font-size: 10px;
-}
-.welcome-footer {
-  padding: 15px 36px 23px;
-  font-size: 9px;
-  color: var(--muted);
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
 }
 .has-messages {
   overflow: hidden;
@@ -1157,9 +1128,6 @@ summary::-webkit-details-marker {
     padding-top: 12px;
     padding-bottom: 22px;
   }
-  .welcome-kicker {
-    margin-bottom: 18px;
-  }
   .welcome-heading {
     margin-bottom: 25px;
   }
@@ -1168,9 +1136,6 @@ summary::-webkit-details-marker {
   }
   .verse-card {
     margin-top: 32px;
-  }
-  .welcome-footer {
-    padding-bottom: 15px;
   }
 }
 @media (max-width: 1100px) {
@@ -1195,9 +1160,6 @@ summary::-webkit-details-marker {
     display: none;
   }
   .faith-label {
-    display: none;
-  }
-  .welcome-footer span:last-child {
     display: none;
   }
 }
@@ -1247,11 +1209,6 @@ summary::-webkit-details-marker {
     width: calc(100% - 40px);
     padding: 35px 0 30px;
     margin: auto;
-  }
-  .welcome-kicker {
-    font-size: 8px;
-    letter-spacing: 1.5px;
-    margin-bottom: 24px;
   }
   .welcome h1 {
     font-size: 36px;
@@ -1323,11 +1280,6 @@ summary::-webkit-details-marker {
   }
   .verse-bottom {
     font-size: 10px;
-  }
-  .welcome-footer {
-    padding: 10px 20px 17px;
-    font-size: 8px;
-    justify-content: center;
   }
   .messages {
     padding: 25px 20px 10px;
