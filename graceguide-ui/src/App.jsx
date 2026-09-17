@@ -710,7 +710,7 @@ export default function App() {
             </button>
             <span className="topbar-title">
               {page === "chat"
-                ? activeChat?.title || "Catholic Q&A"
+                ? activeChat?.title || "New chat"
                 : page === "prayers"
                   ? "Prayer library"
                   : page === "daily"
