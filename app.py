@@ -434,11 +434,16 @@ def qa(request: QARequest):
                 # outside the supplied range. Retry once with an explicit format
                 # correction rather than turning a useful pastoral question into
                 # a generic server error.
+                allowed_citations = ", ".join(
+                    f"[{number}]" for number in range(1, len(records) + 1)
+                )
                 generated = generate(
                     request.question
-                    + "\n\nReturn a fresh answer. Every substantive teaching claim must use "
-                    + f"inline citations from [1] through [{len(records)}]. Do not use "
-                    + "any other citation number."
+                    + "\n\nIMPORTANT OUTPUT CORRECTION: Return a fresh answer with at least "
+                    + "one exact inline citation token. Every quotation and substantive "
+                    + "teaching claim must end with one of these allowed citation tokens: "
+                    + f"{allowed_citations}. Do not put Bible references or CCC paragraph "
+                    + "numbers inside brackets, and do not use any other citation token."
                 )
                 if not generated or not generated.answer.strip():
                     raise ValueError("Empty corrected answer")

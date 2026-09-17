@@ -67,6 +67,8 @@ def test_invalid_citation_never_sent_to_user(client):
     assert '99' not in response.text
     assert response.json()['sources'][0].startswith('John 20:23')
     assert model.with_structured_output.return_value.invoke.call_count == 2
+    corrected_prompt = model.with_structured_output.return_value.invoke.call_args_list[1].args[0]
+    assert 'allowed citation tokens: [1], [2]' in corrected_prompt.messages[-1].content
 
 
 def test_repeated_invalid_citation_never_sent_to_user(client):
