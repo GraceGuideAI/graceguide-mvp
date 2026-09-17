@@ -1,225 +1,72 @@
-# GraceGuide Mobile MVP - Deployment Guide
+# GraceGuide deployment
 
-This guide covers deploying the GraceGuide backend with RevenueCat integration and mobile frontend.
+## Verified September 16, 2026
 
-## Architecture Overview
+The Render dashboard connects `GraceGuideAI/graceguide-mvp`, branch `main`, to the
+Python web service `graceguide-mvp` (`srv-d0l2u6pr0fns7392rj8g`). The custom domain is
+`graceguide.ai`. Auto-Deploy is **On Commit**.
 
-```
-┌─────────────────┐      ┌──────────────────┐      ┌─────────────────┐
-│   Mobile App    │──────▶│  FastAPI Backend │──────▶│    ChromaDB     │
-│  (Vercel/Web)   │      │    (Render)      │      │  (Bible/CCC)    │
-└─────────────────┘      └──────────────────┘      └─────────────────┘
-                                │
-                                ▼
-                         ┌──────────────────┐
-                         │   RevenueCat     │
-                         │  (Subscriptions) │
-                         └──────────────────┘
-```
+At inspection, GitHub main/local were `75a1df4`, but Render's last successful live
+commit was `dd95798`. Multiple attempts to deploy `75a1df4` failed. The latest
+recorded attempt exited with status 1; its logs were outside Render's retention
+period, so the exact historical error cannot be established from those logs.
 
-## Backend Deployment (Render)
+The dashboard's actual build command was only `pip install -r requirements.txt`.
+This skips Vite and can serve old checked-in `dist` files. It differed from the
+repository's `render.yaml`; changes to that YAML do not by themselves prove a
+manually configured service has adopted them.
 
-### 1. Prerequisites
-- Render account
-- OpenAI API key
-- (Optional) RevenueCat account for subscriptions
-- (Optional) Mailchimp account for email marketing
+The service-variable editor showed `OPENAI_API_KEY`, but did not list
+`JWT_SECRET`, `ADMIN_PASSWORD`, `DATABASE_URL`, `SUPABASE_URL`, or
+`SUPABASE_SERVICE_ROLE_KEY` among the checked names. Values were not opened.
+Inherited environment-group values and the contents of any legacy vector index
+were not verified. Since current code requires a non-default `JWT_SECRET` on
+Render, confirm this before retrying a deploy.
 
-### 2. Environment Variables
+## Intended pipeline
 
-Set these in Render Dashboard:
+1. Develop/review a branch and pass tests.
+2. Ensure the existing Render service's **Build Command** is `bash build.sh`.
+3. Keep **Start Command** as `uvicorn app:app --host 0.0.0.0 --port $PORT`.
+4. Set **Health Check Path** to `/health`.
+5. Merge reviewed changes to `main`. On-commit auto-deploy should build Python
+   dependencies and run `npm ci && npm run build` inside `graceguide-ui`.
+6. Check the new deploy is Live and `/health` reports the merged commit.
+7. Verify `graceguide.ai` in a fresh tab: direct question entry, daily verse,
+   real QA and follow-ups in all three source modes, citations, signin/signup,
+   chat persistence, and a mobile viewport.
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `OPENAI_API_KEY` | Yes | OpenAI API key for embeddings & QA |
-| `JWT_SECRET` | Yes | Secret for JWT token signing |
-| `ADMIN_PASSWORD` | Yes | Password for metrics dashboard |
-| `VERCEL_FRONTEND_URL` | No | Vercel frontend URL for CORS |
-| `CORS_ORIGINS` | No | Additional allowed domains (comma-separated) |
-| `REVENUECAT_WEBHOOK_SECRET` | No | Webhook secret from RevenueCat |
-| `REVENUECAT_ENTITLEMENT_ID` | No | Premium entitlement ID (default: "premium") |
-| `MAILCHIMP_API_KEY` | No | For email subscriptions |
-| `MAILCHIMP_SERVER_PREFIX` | No | Mailchimp datacenter prefix |
-| `MAILCHIMP_LIST_ID` | No | Mailchimp audience list ID |
+Keep the previous successful deploy available for rollback. Do not deploy a
+frontend-only build that expects the new history-aware API to an old backend.
 
-### 3. Deployment Steps
+## Configuration preflight
 
-1. **Push code to GitHub**
-2. **Create new Web Service on Render:**
-   - Connect your GitHub repo
-   - Select "Python" environment
-   - Build command: `./build.sh`
-   - Start command: `uvicorn app:app --host 0.0.0.0 --port $PORT`
-3. **Add environment variables** in Render dashboard
-4. **Deploy**
+Confirm, without publishing secret values:
 
-## Frontend Deployment (Vercel)
+- `OPENAI_API_KEY` exists and the model is accessible.
+- `JWT_SECRET` is strong and stable. Preserve an existing configured secret.
+  Startup on Render rejects an unset/default secret; a Blueprint's `generateValue`
+  only helps if the service is actually managed by that Blueprint.
+- The reference library is present: either the existing Supabase configuration
+  (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) with its document table/retrieval
+  function, or a populated and persistent legacy Chroma index. An empty library
+  now produces an honest retryable 503 instead of a fabricated answer.
+- Optional durable application storage uses `DATABASE_URL`; it is independent
+  of vector configuration. Flat-file fallback storage is ephemeral on Render.
+- `ADMIN_PASSWORD` is configured before using metrics.
+- Mailchimp variables are preserved if email subscription is in use.
 
-### 1. Environment Variables
+Do not rebuild vectors or alter the database as part of this UI rollout. Do not
+clear a JWT secret to fix a deployment. The user supplied fresh September 17 startup logs explicitly confirming
+`RuntimeError: JWT_SECRET is unset/default in production`. This confirms the
+current startup blocker; older expired deployments cannot be independently diagnosed.
 
-Create `.env.local` in `graceguide-ui/`:
+## Local preview versus production
 
-```bash
-VITE_API_URL=https://your-backend.onrender.com
-VITE_REVENUECAT_API_KEY=your-revenuecat-public-key
-VITE_REVENUECAT_ENTITLEMENT_ID=premium
-```
+The redesign branch can be previewed with Vite. Browser interaction verification
+can use a disposable test backend, but sample answers are not live OpenAI results.
+Production model/retrieval checks must run against the actual deployed backend.
+Conversations are browser-local; no cross-device history is implemented.
 
-### 2. Deployment Steps
-
-1. **Push code to GitHub**
-2. **Import project in Vercel:**
-   - Root directory: `graceguide-ui`
-   - Framework preset: Vite
-3. **Add environment variables**
-4. **Deploy**
-5. **Copy Vercel URL** and add to backend's `VERCEL_FRONTEND_URL` env var
-
-## RevenueCat Setup
-
-### 1. Configure RevenueCat Project
-
-1. Create project at [RevenueCat Dashboard](https://app.revenuecat.com)
-2. Add your app (Web platform)
-3. Configure products/entitlements:
-   - Create entitlement: `premium`
-   - Add products: monthly, annual subscriptions
-
-### 2. Set Up Webhooks
-
-1. Go to Project Settings > Webhooks
-2. Add webhook URL: `https://your-backend.onrender.com/webhooks/revenuecat`
-3. Copy webhook secret to `REVENUECAT_WEBHOOK_SECRET`
-4. Select events:
-   - ✅ INITIAL_PURCHASE
-   - ✅ RENEWAL
-   - ✅ CANCELLATION
-   - ✅ EXPIRATION
-   - ✅ REFUND
-
-### 3. Frontend Integration
-
-The `useRevenueCat` hook handles:
-- SDK initialization
-- Purchase flow
-- Subscription status checking
-- Premium feature gates
-
-```javascript
-import { usePremiumFeatures } from './hooks/useRevenueCat.js';
-
-function MyComponent() {
-  const { 
-    isPremium, 
-    canAskUnlimited, 
-    shouldShowAds,
-    purchasePackage,
-    availablePackages 
-  } = usePremiumFeatures();
-  
-  // Use premium features...
-}
-```
-
-## API Endpoints
-
-### Core Endpoints
-
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/qa` | POST | Optional | Ask a question |
-| `/subscribe` | POST | No | Email signup |
-| `/log_event` | POST | No | Analytics events |
-| `/verse-of-the-day` | GET | No | Daily verse |
-| `/auth/signup` | POST | No | Create account |
-| `/auth/signin` | POST | No | Login |
-
-### Admin Endpoints
-
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/metrics` | GET | Basic Auth | Usage metrics |
-
-### Webhook Endpoints
-
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/webhooks/revenuecat` | POST | Signature | RevenueCat events |
-
-### Health Check
-
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/health` | GET | No | Service health |
-
-## Premium Features
-
-### Question Limits
-- **Free users:** 5 questions per day
-- **Premium users:** Unlimited questions
-
-### Ads
-- **Free users:** Ads shown
-- **Premium users:** No ads
-
-### Implementation
-
-```javascript
-// Check if user can ask more questions
-const { hasReachedQuestionLimit, isPremium } = usePremiumFeatures();
-const questionsToday = 3; // Track in your state
-
-if (hasReachedQuestionLimit(questionsToday)) {
-  // Show upgrade prompt
-}
-```
-
-## Testing
-
-### Test RevenueCat Integration
-
-1. Use RevenueCat sandbox API key in development
-2. Test purchase flow with test cards
-3. Verify webhook delivery in RevenueCat dashboard
-
-### Test CORS
-
-```bash
-curl -H "Origin: https://your-frontend.vercel.app" \
-     -H "Access-Control-Request-Method: POST" \
-     -I https://your-backend.onrender.com/qa
-```
-
-## Troubleshooting
-
-### CORS Errors
-- Check `VERCEL_FRONTEND_URL` is set correctly
-- Verify no trailing slashes
-- Add additional domains to `CORS_ORIGINS` if needed
-
-### RevenueCat Webhook Failures
-- Verify `REVENUECAT_WEBHOOK_SECRET` matches RevenueCat dashboard
-- Check webhook URL is publicly accessible
-- Review Render logs for error messages
-
-### ChromaDB Issues
-- Ensure `veritas_ai_chroma_db` directory exists
-- Re-run `build_db.py` if database is corrupted
-
-## Security Checklist
-
-- [ ] Change default `JWT_SECRET` in production
-- [ ] Set strong `ADMIN_PASSWORD`
-- [ ] Enable RevenueCat webhook signature verification
-- [ ] Use HTTPS for all endpoints
-- [ ] Store API keys in environment variables only
-- [ ] Review CORS origins before deploying
-
-## Migration Notes
-
-When migrating from web-only to mobile:
-1. Existing ChromaDB data is preserved
-2. User accounts are compatible
-3. Email subscribers remain in CSV/Mailchimp
-4. Add RevenueCat for subscription management
-5. Deploy mobile frontend to Vercel
+The service worker caches only app shell/assets, never account/API responses or
+daily verses. After deployment, refresh an existing tab to load the new interface.

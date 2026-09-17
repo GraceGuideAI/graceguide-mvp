@@ -6,7 +6,7 @@ pip install -r requirements.txt
 
 echo "Building frontend..."
 cd graceguide-ui
-npm install
+npm ci
 npm run build
 cd ..
 

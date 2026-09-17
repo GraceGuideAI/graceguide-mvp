@@ -1,123 +1,87 @@
-# GraceGuide MVP
+# GraceGuide
 
-This project provides a small FastAPI service powered by LangChain with a Vite/Vanilla JS frontend. The service exposes a `/qa` endpoint for question answering and a `/subscribe` endpoint for email sign‑ups.
+GraceGuide is a Catholic chat application grounded in Scripture and the Catechism.
+The first screen opens directly to a question composer. A sidebar contains past
+conversations, the prayer library, daily inspiration, and preferences.
 
-## Prerequisites
+## Architecture
 
-- **Python**: 3.11 or newer
-- **Node.js**: 18 or newer (for the frontend build)
-- **npm**: comes with Node and is used to run Vite
+- React 18 + Vite frontend in `graceguide-ui/`; CSS ships in the build (no Tailwind CDN).
+- FastAPI in `app.py`, serving both `/qa` and the compiled frontend on one origin.
+- LangChain/OpenAI for retrieval and structured answer generation. `templates.py`
+  controls tone; `qa_logic.py` filters evidence and validates numbered references.
+- Browser-local conversations and favorites. Signing in grants the existing unlimited
+  question allowance; it does **not** provide cloud conversation syncing.
+- PostgreSQL persistence and Supabase vector retrieval are optional existing integrations.
 
-## Installation
+## Local development
 
-Install Python packages:
+Use Python 3.11+ and Node 20+.
 
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-Install frontend dependencies:
-
-```bash
-cd graceguide-ui
-npm install
-# Installs Vite and other packages so the build script can run successfully
-```
-
-`npm run build` now runs `npm ci` automatically via a `prebuild` script, so packages
-will be installed if they're missing.
-
-## Environment variables
-
-Set your OpenAI key so both the database script and the API can embed and query text:
-
-```bash
-export OPENAI_API_KEY=your-openai-key
-```
-
-The `/subscribe` endpoint uses a mailing‑list provider. Define the following variables so the endpoint can add emails to your list (values depend on your provider):
-
-```bash
-export MAILCHIMP_API_KEY=your-mailchimp-api-key
-export MAILCHIMP_SERVER_PREFIX=us1        # e.g. 'us1'
-export MAILCHIMP_LIST_ID=abc123456
-```
-
-If these variables are not set or Mailchimp returns an error, emails are stored
-locally in `subscribers.csv`. The endpoint checks both your Mailchimp list and
-the CSV file to avoid duplicates.
-
-## Building the Chroma database
-
-Run the build script once after setting `OPENAI_API_KEY`:
-
-```bash
-python3 build_db.py
-```
-
-This creates the `veritas_ai_chroma_db/` directory used by the API.
-
-## Starting the FastAPI server
-
-After the database exists you can start the server. Ensure the UI is built first
-using the helper script:
-
-```bash
-./scripts/build_frontend.sh
+```sh
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+# Supply environment variables through your shell; do not commit secrets.
 uvicorn app:app --reload --port 8000
 ```
 
-The UI in `graceguide-ui/dist` will be served automatically once built.
+In another terminal:
 
-## Building the frontend
-
-To build the static frontend with Vite use the provided script:
-
-```bash
-./scripts/build_frontend.sh
+```sh
+cd graceguide-ui
+npm ci
+npm run dev
 ```
 
-You can also run `npm run build` directly; it will install dependencies first
-thanks to the new `prebuild` step.
+Vite proxies the API to port 8000. Production uses relative API URLs on the same
+origin. If intentionally splitting deployments, set `VITE_API_URL` for the frontend
+and the matching CORS origins for the backend.
 
-The output appears in `graceguide-ui/dist/`. When the API is running these files are served as the root website so you can navigate to `http://localhost:8000/` to use the app.
+## Configuration
 
-## Deployment
+`OPENAI_API_KEY` is required at backend startup. Set a strong, stable `JWT_SECRET`;
+Render startup rejects the known insecure default. Keep an existing secret stable
+so deployed accounts stay signed in. `ADMIN_PASSWORD` protects administrative metrics.
 
-Before deploying the API make sure the UI has been built:
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` select the existing Supabase vector
+library. Without them the app expects a prebuilt local Chroma library at
+`veritas_ai_chroma_db/`. `DATABASE_URL` independently enables durable storage of
+accounts, subscribers, and metrics. The new chat path does not use the old shared
+QA cache, so personal conversation context cannot collide with cached answers.
 
-```bash
-./scripts/build_frontend.sh
+`build_db.py` is a destructive ingestion operation: it attempts to clear the
+existing vector document table before re-embedding. Do not run it to diagnose a
+missing connection or as part of an ordinary deployment.
+
+## Answer contract
+
+`POST /qa` accepts `question`, `mode` (`both`, `bible`, `catechism`), and an optional
+`history` array of up to 10 `{role, content}` turns. Responses remain
+`{answer, sources}`. The answer is Markdown with numbered citations; the source
+list uses actual retrieved metadata and excerpts. Unknown evidence numbers are
+rejected. This validates reference provenance, not every theological interpretation
+or pre-existing error in the source corpus.
+
+Retrieval in `both` mode queries both source types. Follow-up context includes recent
+user turns for retrieval and recent user/assistant turns for generation. Requests
+are bounded, errors are retryable, and failures do not consume the UI allowance.
+The inherited anonymous limit remains browser-enforced, not an abuse-control system.
+
+`GET /verse-of-the-day` returns only `verse_text` and `verse_reference`.
+`GET /health` includes `commit` from Render for deployment verification.
+
+## Checks
+
+```sh
+pip install pytest httpx
+python -m pytest -q
+python scripts/verify_daily_verses.py
+cd graceguide-ui
+npm run test
+npm run build
 ```
 
-The contents of `graceguide-ui/dist/` are what get served in production.
-
-## Testing share image generation
-
-After building the frontend you can verify the `generateShareImage()` helper
-using a small Node script. Install the Node dependencies once and run:
-
-```bash
-npm install
-node scripts/test_share_image.js
-```
-
-The script launches Puppeteer, loads the built `index.html` file and checks that
-the returned PNG is 540×960 pixels.
-
-## Metrics
-
-The API records simple user interaction events to `metrics.csv`. You can fetch
-aggregated counts from the authenticated `/metrics` endpoint:
-
-```bash
-curl -u admin:YOUR_ADMIN_PASSWORD http://localhost:8000/metrics
-```
-
-Events are logged via the `/log_event` endpoint which the frontend calls when
-the popup is shown, an email submission succeeds or fails, and when a user
-clicks **Maybe Later**.
-
-## Feedback log
-
-If you keep notes while using the app, you can write them to `feedback.log`. The file is ignored by Git so your personal feedback stays local.
+Backend tests use mocked retrieval/model responses, without paid API calls. Live
+model quality and production authentication/retrieval still require a configured
+service smoke test. See `DEPLOYMENT.md` for the verified Render setup and rollout.

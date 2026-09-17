@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
+from typing import Literal
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 import json
@@ -76,9 +77,8 @@ if not BIBLE_DATA:
     BIBLE_DATA = {"John": {"3": {"16": FALLBACK_VERSE_TEXT}}}
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_chroma import Chroma
-from langchain_core.prompts import PromptTemplate
 from templates import prompt_for_mode
+from qa_logic import retrieve_sources, source_context, normalize_answer
 import metrics
 import db
 
@@ -112,6 +112,7 @@ def get_vectorstore():
                 query_name="match_documents",
             )
         else:
+            from langchain_chroma import Chroma
             vectorstore = Chroma(
                 persist_directory="veritas_ai_chroma_db",
                 embedding_function=embeddings,
@@ -125,7 +126,7 @@ llm = ChatOpenAI(
     model_name="gpt-4o-mini",  # Much faster than gpt-4-turbo, still very capable
     temperature=0.0,
     openai_api_key=api_key,
-    max_tokens=1500,  # Limit response length for faster processing
+    max_tokens=2000,  # Limit response length for faster processing
     request_timeout=30  # 30 second timeout
 )
 
@@ -148,7 +149,7 @@ if VERCEL_FRONTEND_URL:
 if CUSTOM_DOMAINS:
     cors_origins.extend([d.strip() for d in CUSTOM_DOMAINS.split(",") if d.strip()])
 
-app = FastAPI(title="GraceGuide AI API", version="1.0.0")
+app = FastAPI(title="GraceGuide AI API", version="2.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
@@ -156,6 +157,13 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
+
+@app.middleware("http")
+async def fresh_app_shell(request, call_next):
+    response = await call_next(request)
+    if request.url.path in {"/", "/index.html", "/sw.js", "/health", "/verse-of-the-day"}:
+        response.headers["Cache-Control"] = "no-cache"
+    return response
 
 security = HTTPBasic()
 admin_password = os.getenv("ADMIN_PASSWORD")
@@ -166,9 +174,26 @@ class SourceMode(str, Enum):
     both = "both"
     catechism = "catechism"
 
+class ChatTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=6000)
+
 class QARequest(BaseModel):
-    question: str
+    question: str = Field(min_length=1, max_length=4000)
     mode: SourceMode = SourceMode.both
+    history: list[ChatTurn] = Field(default_factory=list, max_length=10)
+
+    @field_validator("question")
+    @classmethod
+    def strip_question(cls, value):
+        if not value.strip():
+            raise ValueError("Please enter a question.")
+        return value.strip()
+
+class GeneratedAnswer(BaseModel):
+    answer: str = Field(description="Readable Markdown answer with inline evidence numbers [1], [2]. No source list.")
+    grounded: bool = Field(description="True for a substantive answer supported by retrieved evidence; false for a greeting or insufficient evidence.")
+
 
 class QAResponse(BaseModel):
     answer: str
@@ -349,77 +374,43 @@ def get_verse_of_the_day():
             verse_reference=FALLBACK_VERSE_REFERENCE,
         )
 
-# 7) /qa endpoint
+# 7) Conversational /qa endpoint. No shared answer cache: context and personal
+# questions must not accidentally reuse another conversation's response.
 @app.post("/qa", response_model=QAResponse)
 def qa(request: QARequest):
-    key = f"{request.mode.value}|{request.question.strip()}"
-    if db.enabled:
-        try:
-            cached = db.qa_cache_get(key)
-        except Exception:
-            cached = None
-    else:
-        cached = cache.get(key)
-    if cached:
-        return QAResponse(**cached)
-    # Build retriever with optional source filter
-    filter_opt = None
-    if request.mode == SourceMode.bible:
-        filter_opt = {"source": "Bible"}
-    elif request.mode == SourceMode.catechism:
-        filter_opt = {"source": "CCC"}
-
-    local_retriever = get_vectorstore().as_retriever(
-        search_kwargs={"k": 5, **({"filter": filter_opt} if filter_opt else {})}  # Reduced from 8 to 5
-    )
-
-    # Manual retrieval chain (RetrievalQA is deprecated)
     try:
-        # Get relevant documents using invoke() (new LangChain API)
-        docs = local_retriever.invoke(request.question)
-        
-        # Build context from retrieved docs
-        context = "\n\n".join([doc.page_content for doc in docs])
-        
-        # Get the prompt template
-        prompt_template = prompt_for_mode(request.mode.value)
-        
-        # Format the prompt with context and question
-        formatted_prompt = prompt_template.format(context=context, question=request.question)
-        
-        # Get LLM response
-        response = llm.invoke(formatted_prompt)
-        res = {"result": response.content, "source_documents": docs}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    raw = res["result"].strip()
-
-    if "=== Sources ===" in raw:
-        answer_text, sources_block = raw.split("=== Sources ===", 1)
-    else:
-        answer_text, sources_block = raw, ""
-
-    sources = [
-        line[2:].strip()
-        for line in sources_block.splitlines()
-        if line.strip().startswith("- ")
-    ]
-
-    answer = answer_text.strip()
-    resp = {"answer": answer, "sources": sources}
-    if db.enabled:
-        try:
-            db.qa_cache_set(key, answer, sources)
-        except Exception as e:
-            logging.error("Failed to write qa cache: %s", e)
-    else:
-        cache[key] = resp
-        try:
-            with CACHE_FILE.open("w") as f:
-                json.dump(cache, f)
-        except Exception:
-            pass
-    return QAResponse(**resp)
+        records = retrieve_sources(
+            get_vectorstore(), request.question, request.mode.value, request.history
+        )
+        if not records:
+            raise HTTPException(status_code=503, detail=(
+                "The reference library is unavailable right now. Please try again shortly."
+            ))
+        prompt = prompt_for_mode(request.mode.value).invoke({
+            "context": source_context(records),
+            "question": request.question,
+            "history": [(turn.role, turn.content) for turn in request.history],
+        })
+        generated = llm.with_structured_output(GeneratedAnswer, method="json_schema").invoke(prompt)
+        if not generated or not generated.answer.strip():
+            raise ValueError("Empty generated answer")
+        if not generated.grounded:
+            # A graceful insufficient-evidence reply is distinct from an outage.
+            # Still validate any citations it elects to include.
+            import re
+            result = normalize_answer(generated.answer, records) if re.search(r"\[\d+\]", generated.answer) else {
+                "answer": generated.answer.strip(), "sources": [],
+            }
+        else:
+            result = normalize_answer(generated.answer, records)
+        return QAResponse(**result)
+    except HTTPException:
+        raise
+    except Exception:
+        logging.exception("Unable to complete GraceGuide answer")
+        raise HTTPException(status_code=502, detail=(
+            "GraceGuide couldn’t prepare a reliable answer just now. Please try again."
+        ))
 
 # 8) /subscribe endpoint to capture emails
 @app.post("/subscribe")
@@ -515,7 +506,8 @@ def log_event(evt: LogEvent):
 def health_check():
     return {
         "status": "healthy",
-        "version": "1.0.0",
+        "version": "2.0.0",
+        "commit": os.getenv("RENDER_GIT_COMMIT", "local"),
         "timestamp": datetime.utcnow().isoformat()
     }
 

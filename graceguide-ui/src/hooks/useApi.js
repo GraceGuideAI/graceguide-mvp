@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { apiRequest } from '../client';
 
 export function useQA() {
   const [loading, setLoading] = useState(false);
@@ -121,14 +122,12 @@ export function useAuth() {
   });
   
   const signIn = useCallback(async (email, password) => {
-    const res = await fetch('/auth/signin', {
+    const data = await apiRequest('/auth/signin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
     
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Sign in failed');
     
     localStorage.setItem('gg_token', data.token);
     localStorage.setItem('gg_email', email);
@@ -137,14 +136,12 @@ export function useAuth() {
   }, []);
   
   const signUp = useCallback(async (email, password) => {
-    const res = await fetch('/auth/signup', {
+    const data = await apiRequest('/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
     
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Sign up failed');
     
     localStorage.setItem('gg_token', data.token);
     localStorage.setItem('gg_email', email);
