@@ -455,7 +455,7 @@ export default function App() {
           placeholder={
             messages.length
               ? "Ask a follow-up…"
-              : "Ask anything about the Catholic faith…"
+              : "Ask anything…"
           }
           onKeyDown={(e) => {
             if (
@@ -718,9 +718,6 @@ export default function App() {
                     : "Settings"}
             </span>
           </div>
-          <span className="faith-label">
-            <Cross size={12} strokeWidth={1.8} /> CATHOLIC Q&A
-          </span>
           <button
             className="mobile-new icon-button"
             aria-label="New chat"
@@ -741,9 +738,8 @@ export default function App() {
               <div className="welcome">
                 <div className="welcome-heading">
                   <h1>
-                    Ask about the <em>Catholic faith.</em>
+                    Ask anything. Get answers rooted in <em>Scripture and the Catechism.</em>
                   </h1>
-                  <p>Get answers grounded in Scripture and the Catechism.</p>
                 </div>
                 {composer}
                 <div className="suggestions">

@@ -429,16 +429,6 @@ p {
   white-space: nowrap;
   max-width: 500px;
 }
-.faith-label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  letter-spacing: 1.25px;
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--accent);
-  white-space: nowrap;
-}
 .open-sidebar,
 .mobile-new {
   display: none;
@@ -1157,9 +1147,6 @@ summary::-webkit-details-marker {
     gap: 7px;
   }
   .suggestions svg:last-child {
-    display: none;
-  }
-  .faith-label {
     display: none;
   }
 }
