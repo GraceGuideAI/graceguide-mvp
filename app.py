@@ -388,18 +388,29 @@ def qa(request: QARequest):
         records = retrieve_sources(
             get_vectorstore(), request.question, request.mode.value, request.history
         )
-        if not records:
-            raise HTTPException(status_code=503, detail=(
-                "The reference library is unavailable right now. Please try again shortly."
-            ))
         prompt = prompt_for_mode(request.mode.value).invoke({
-            "context": source_context(records),
+            "context": source_context(records) or "(No relevant source excerpts were found.)",
             "question": request.question,
             "history": [(turn.role, turn.content) for turn in request.history],
         })
         generated = llm.with_structured_output(GeneratedAnswer, method="json_schema").invoke(prompt)
         if not generated or not generated.answer.strip():
             raise ValueError("Empty generated answer")
+        if not records:
+            # A greeting or a question outside the local corpus is not a library
+            # outage. Keep it conversational, but never present an unsupported
+            # substantive answer or fabricated citation as source-grounded.
+            import re
+            if generated.grounded or re.search(r"\[\d+\]", generated.answer):
+                return QAResponse(
+                    answer=(
+                        "I couldn’t find enough in the available Scripture and Catechism "
+                        "sources to answer that reliably. Try adding a little more detail "
+                        "or asking about a specific Catholic teaching."
+                    ),
+                    sources=[],
+                )
+            return QAResponse(answer=generated.answer.strip(), sources=[])
         if not generated.grounded:
             # A graceful insufficient-evidence reply is distinct from an outage.
             # Still validate any citations it elects to include.

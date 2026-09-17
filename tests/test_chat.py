@@ -64,11 +64,30 @@ def test_invalid_citation_never_sent_to_user(client):
     assert '99' not in response.text
 
 
-def test_library_failure_is_retryable(client, monkeypatch):
+def test_no_matching_sources_is_a_conversational_response(client, monkeypatch):
     c, model = client
     monkeypatch.setattr(app, 'retrieve_sources', lambda *args: [])
-    assert c.post('/qa', json={"question": "What is confession?"}).status_code == 503
-    model.with_structured_output.assert_not_called()
+    model.with_structured_output.return_value.invoke.return_value = app.GeneratedAnswer(
+        answer='Hi! What would you like to explore?', grounded=False
+    )
+    response = c.post('/qa', json={"question": "hey"})
+    assert response.status_code == 200
+    assert response.json() == {
+        'answer': 'Hi! What would you like to explore?',
+        'sources': [],
+    }
+
+
+def test_no_sources_never_exposes_an_unsupported_answer(client, monkeypatch):
+    c, model = client
+    monkeypatch.setattr(app, 'retrieve_sources', lambda *args: [])
+    model.with_structured_output.return_value.invoke.return_value = app.GeneratedAnswer(
+        answer='Unsupported teaching [1]', grounded=True
+    )
+    response = c.post('/qa', json={"question": "Tell me something obscure"})
+    assert response.status_code == 200
+    assert response.json()['sources'] == []
+    assert '[1]' not in response.json()['answer']
 
 
 def test_upstream_details_are_private(client):
