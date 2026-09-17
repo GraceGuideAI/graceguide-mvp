@@ -388,12 +388,20 @@ def qa(request: QARequest):
         records = retrieve_sources(
             get_vectorstore(), request.question, request.mode.value, request.history
         )
-        prompt = prompt_for_mode(request.mode.value).invoke({
-            "context": source_context(records) or "(No relevant source excerpts were found.)",
-            "question": request.question,
-            "history": [(turn.role, turn.content) for turn in request.history],
-        })
-        generated = llm.with_structured_output(GeneratedAnswer, method="json_schema").invoke(prompt)
+        context = source_context(records) or "(No relevant source excerpts were found.)"
+        history = [(turn.role, turn.content) for turn in request.history]
+
+        def generate(question):
+            prompt = prompt_for_mode(request.mode.value).invoke({
+                "context": context,
+                "question": question,
+                "history": history,
+            })
+            return llm.with_structured_output(
+                GeneratedAnswer, method="json_schema"
+            ).invoke(prompt)
+
+        generated = generate(request.question)
         if not generated or not generated.answer.strip():
             raise ValueError("Empty generated answer")
         if not records:
@@ -419,7 +427,25 @@ def qa(request: QARequest):
                 "answer": generated.answer.strip(), "sources": [],
             }
         else:
-            result = normalize_answer(generated.answer, records)
+            try:
+                result = normalize_answer(generated.answer, records)
+            except ValueError:
+                # Models occasionally omit a citation or use an evidence number
+                # outside the supplied range. Retry once with an explicit format
+                # correction rather than turning a useful pastoral question into
+                # a generic server error.
+                generated = generate(
+                    request.question
+                    + "\n\nReturn a fresh answer. Every substantive teaching claim must use "
+                    + f"inline citations from [1] through [{len(records)}]. Do not use "
+                    + "any other citation number."
+                )
+                if not generated or not generated.answer.strip():
+                    raise ValueError("Empty corrected answer")
+                if not generated.grounded:
+                    result = {"answer": generated.answer.strip(), "sources": []}
+                else:
+                    result = normalize_answer(generated.answer, records)
         return QAResponse(**result)
     except HTTPException:
         raise

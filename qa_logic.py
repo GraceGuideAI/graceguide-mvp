@@ -11,10 +11,17 @@ WORD = re.compile(r"[a-z0-9']+")
 
 STOP_WORDS = {
     "a", "about", "an", "and", "are", "as", "at", "be", "by", "can",
-    "catholic", "church", "do", "does", "for", "from", "how", "i", "in",
+    "catholic", "church", "deal", "do", "does", "for", "from", "how", "i", "in",
     "is", "it", "me", "my", "of", "on", "or", "our", "should", "teach",
     "that", "the", "their", "them", "this", "to", "us", "was", "what",
     "when", "where", "which", "who", "why", "with", "would", "you", "your",
+}
+
+QUERY_EXPANSIONS = {
+    "shame": {"guilt", "mercy", "forgive", "conscience", "hope"},
+    "anxiety": {"fear", "peace", "worry", "trust"},
+    "lonely": {"alone", "friend", "community", "love"},
+    "grief": {"sorrow", "mourning", "comfort", "hope"},
 }
 
 
@@ -36,6 +43,14 @@ def _terms(text):
         _stem(word) for word in WORD.findall(text.lower())
         if word not in STOP_WORDS and len(word) > 2
     }
+
+
+def _query_terms(text):
+    weighted = {term: 1.0 for term in _terms(text)}
+    for term in tuple(weighted):
+        for expansion in QUERY_EXPANSIONS.get(term, ()):
+            weighted.setdefault(expansion, 0.65)
+    return weighted
 
 
 @dataclass
@@ -112,11 +127,11 @@ class LocalReferenceStore:
         documents = self.documents.get(kind, [])
         inverted = self.index.get(kind, {})
         scores = defaultdict(float)
-        for term in _terms(query):
+        for term, query_weight in _query_terms(query).items():
             matches = inverted.get(term, [])
             if not matches:
                 continue
-            weight = math.log(1 + len(documents) / len(matches))
+            weight = query_weight * math.log(1 + len(documents) / len(matches))
             for doc_id in matches:
                 scores[doc_id] += weight
         ranked = sorted(scores, key=lambda doc_id: (-scores[doc_id], doc_id))[:k]

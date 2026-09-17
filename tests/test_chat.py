@@ -58,7 +58,22 @@ def test_request_limits(client, payload):
 
 def test_invalid_citation_never_sent_to_user(client):
     c, model = client
-    model.with_structured_output.return_value.invoke.return_value = app.GeneratedAnswer(answer='An invented source. [99]', grounded=True)
+    model.with_structured_output.return_value.invoke.side_effect = [
+        app.GeneratedAnswer(answer='An invented source. [99]', grounded=True),
+        app.GeneratedAnswer(answer='A corrected answer. [1]', grounded=True),
+    ]
+    response = c.post('/qa', json={"question": "What is confession?"})
+    assert response.status_code == 200
+    assert '99' not in response.text
+    assert response.json()['sources'][0].startswith('John 20:23')
+    assert model.with_structured_output.return_value.invoke.call_count == 2
+
+
+def test_repeated_invalid_citation_never_sent_to_user(client):
+    c, model = client
+    model.with_structured_output.return_value.invoke.return_value = app.GeneratedAnswer(
+        answer='An invented source. [99]', grounded=True
+    )
     response = c.post('/qa', json={"question": "What is confession?"})
     assert response.status_code == 502
     assert '99' not in response.text
