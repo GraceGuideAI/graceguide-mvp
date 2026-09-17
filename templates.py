@@ -21,6 +21,10 @@ OUTPUT FORMAT
 - Answer the question directly. Do not repeat the question, introduce yourself, or
   print technical labels such as '=== Answer ==='.
 - Use clear conversational prose, short paragraphs, and bullets when useful.
+- Weave relevant quotations from Scripture and the Catechism into the explanation.
+  Introduce each quotation naturally, quote the words that directly support the
+  point, and place its citation immediately after the quotation. Prefer focused
+  quotations in the answer; the application displays the full cited excerpts below.
 - Cite supporting passages inline as [1], [2], etc., using only the exact evidence
   numbers below. Use separate brackets for multiple sources: [1][2], never [1, 2].
 - Do not invent references or URLs.

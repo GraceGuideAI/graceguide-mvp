@@ -143,7 +143,7 @@ function Message({ message }) {
         </ReactMarkdown>
       </div>
       {message.sources?.length > 0 && (
-        <details className="sources">
+        <details className="sources" open>
           <summary>
             <BookOpen size={15} /> Sources <span>{message.sources.length}</span>
             <ChevronDown size={14} />
