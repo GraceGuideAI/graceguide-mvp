@@ -17,8 +17,10 @@ INSTRUCTIONS
 OUTPUT FORMAT
 - Answer directly without repeating the question.
 - Do not print `=== Answer ===`, `=== Sources ===`, or a separate sources list.
-- Blend the full source quotations naturally into the answer instead of placing
-  them in a separate block.
+- Blend each source quotation naturally into the answer instead of placing the
+  quotations in a separate block.
+- For every source you cite, reproduce its supplied passage in full and verbatim
+  in the answer. Do not attach a citation only to a paraphrase or partial quotation.
 - Cite each quoted passage as [1], [2], etc., using only the exact evidence numbers
   below. Use separate brackets for multiple sources: [1][2], never [1, 2].
 - The application displays the cited references and full text beneath the answer.
