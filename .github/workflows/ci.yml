@@ -15,7 +15,11 @@ jobs:
         with:
           python-version: "3.11"
       - name: Syntax-check backend
-        run: python -m py_compile app.py db.py metrics.py build_db.py templates.py
+        run: python -m py_compile app.py db.py metrics.py build_db.py templates.py qa_logic.py
+      - name: Install backend test dependencies
+        run: pip install -r requirements.txt pytest httpx
+      - name: Test API and citation contracts
+        run: python -m pytest -q
       - name: Verify daily verses resolve
         run: python scripts/verify_daily_verses.py
 
@@ -30,4 +34,5 @@ jobs:
         with:
           node-version: "20"
       - run: npm ci
+      - run: npm run test
       - run: npm run build

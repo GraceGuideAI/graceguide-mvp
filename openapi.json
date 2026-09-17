@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Veritas AI QA API",
-    "version": "0.1.0"
+    "title": "GraceGuide AI API",
+    "version": "2.0.0"
   },
   "paths": {
     "/auth/signup": {
@@ -84,6 +84,7 @@
     "/verse-of-the-day": {
       "get": {
         "summary": "Get Verse Of The Day",
+        "description": "Return a consistent daily verse.\n\nIf the desired verse is missing from the loaded data, a fallback verse\n(John 3:16) is returned instead and the missing reference is logged.",
         "operationId": "get_verse_of_the_day_verse_of_the_day_get",
         "responses": {
           "200": {
@@ -229,6 +230,22 @@
           }
         }
       }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -269,6 +286,30 @@
         ],
         "title": "AuthResponse"
       },
+      "ChatTurn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 6000,
+            "minLength": 1,
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "ChatTurn"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -299,11 +340,21 @@
         "properties": {
           "question": {
             "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
             "title": "Question"
           },
           "mode": {
             "$ref": "#/components/schemas/SourceMode",
             "default": "both"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/ChatTurn"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "History"
           }
         },
         "type": "object",
@@ -378,6 +429,13 @@
           "type": {
             "type": "string",
             "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
         "type": "object",

@@ -1,11 +1,11 @@
 {
-  "name": "GraceGuide - Catholic Q&A",
+  "name": "GraceGuide \u2014 A conversation in faith",
   "short_name": "GraceGuide",
   "description": "AI-powered Catholic question answering with Bible and Catechism sources",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0054a6",
+  "background_color": "#fbfaf7",
+  "theme_color": "#3d5d4b",
   "orientation": "portrait",
   "scope": "/",
   "icons": [
@@ -58,38 +58,38 @@
       "purpose": "maskable any"
     }
   ],
-  "categories": ["education", "reference", "lifestyle"],
+  "categories": [
+    "education",
+    "reference",
+    "lifestyle"
+  ],
   "lang": "en",
   "dir": "ltr",
   "prefer_related_applications": false,
-  "screenshots": [
-    {
-      "src": "/screenshots/mobile-home.png",
-      "sizes": "540x960",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "/screenshots/mobile-qa.png",
-      "sizes": "540x960",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Ask a Question",
       "short_name": "Ask",
       "description": "Quickly ask a Catholic question",
-      "url": "/app",
-      "icons": [{ "src": "/icons/icon-96x96.svg", "sizes": "96x96" }]
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.svg",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Verse of the Day",
       "short_name": "Verse",
       "description": "View today's scripture verse",
-      "url": "/verse",
-      "icons": [{ "src": "/icons/icon-96x96.svg", "sizes": "96x96" }]
+      "url": "/?view=daily",
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.svg",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }
